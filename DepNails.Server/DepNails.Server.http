@@ -1,0 +1,6 @@
+@DepNails.Server_HostAddress = http://localhost:5143
+
+GET {{DepNails.Server_HostAddress}}/weatherforecast/
+Accept: application/json
+
+###
