@@ -1,6 +1,12 @@
+using DepNails.Server.ServiceSetup;
+
 var builder = WebApplication.CreateBuilder(args);
 
 // Add services to the container.
+
+
+builder.Services.AddAppServices(builder.Configuration.GetConnectionString("LocalConnection"));
+
 
 builder.Services.AddControllers();
 // Learn more about configuring OpenAPI at https://aka.ms/aspnet/openapi

@@ -1,14 +1,16 @@
 ﻿using AppLibrary.Interfaces;
-using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
 
 namespace AppLibrary.Repositories
 {
     public class ServicesRepository : IServicesRepository
     {
+        private readonly string _connectionString;
+
+        public ServicesRepository(string connectionString)
+        {
+            _connectionString = connectionString;
+        }
+
         public void AddService(string serviceName)
         {
             throw new NotImplementedException();
