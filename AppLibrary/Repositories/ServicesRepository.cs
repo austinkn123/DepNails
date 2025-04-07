@@ -1,14 +1,16 @@
 ﻿using AppLibrary.Interfaces;
+using AppLibrary.Models;
+using System.Data;
 
 namespace AppLibrary.Repositories
 {
     public class ServicesRepository : IServicesRepository
     {
-        private readonly string _connectionString;
+        private readonly IDbConnection _dbConnection;
 
-        public ServicesRepository(string connectionString)
+        public ServicesRepository(IDbConnection dbConnection)
         {
-            _connectionString = connectionString;
+            _dbConnection = dbConnection;
         }
 
         public void AddService(string serviceName)
@@ -16,7 +18,7 @@ namespace AppLibrary.Repositories
             throw new NotImplementedException();
         }
 
-        public List<string> GetAllServices()
+        public List<Service> GetAllServices()
         {
             throw new NotImplementedException();
         }

@@ -14,8 +14,4 @@
     <PackageReference Include="System.Reflection" Version="4.3.0" />
   </ItemGroup>
 
-  <ItemGroup>
-    <Folder Include="DiConfigs\" />
-  </ItemGroup>
-
 </Project>
