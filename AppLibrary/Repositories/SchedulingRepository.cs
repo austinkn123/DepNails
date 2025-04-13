@@ -6,64 +6,114 @@ using System.Data;
 
 namespace AppLibrary.Repositories
 {
-    public class SchedulingRepository : ISchedulingRepository
+    public class SchedulingRepository(IDbConnection dbConnection) : ISchedulingRepository
     {
-        private readonly IDbConnection _dbConnection;
-
-        public SchedulingRepository(IDbConnection dbConnection)
-        {
-            _dbConnection = dbConnection;
-        }
         //TODO: need to add and connect services to appointments
-        public void AddAppointment(Appointment appointment)
+        public void ScheduleAppointment(AppointmentRequest appointmentRequest)
         {
-            _dbConnection.Execute(addAppointment, new
+            using var connection = dbConnection;
+            connection.Open();
+
+            using var transaction = connection.BeginTransaction();
+
+            try
             {
-                appointment.Id,
-                appointment.ClientId,
-                appointment.TechnicianId,
-                appointment.AppointmentDate,
-                appointment.AppointmentTime,
-                appointment.Duration,
-                appointment.Status,
-                appointment.Notes,
-                appointment.Paid
-            });
+                // Insert into appointments and get the new ID
+                var appointmentId = connection.ExecuteScalar<int>(
+                    addAppointment,
+                    new
+                    {
+                        appointmentRequest.ClientId,
+                        appointmentRequest.TechnicianId,
+                        appointmentRequest.AppointmentDate,
+                        appointmentRequest.AppointmentTime,
+                        appointmentRequest.Duration,
+                        appointmentRequest.Status,
+                        appointmentRequest.Notes
+                    },
+                    transaction: transaction
+                );
+
+                // Insert each service into the junction table
+                foreach (var serviceId in appointmentRequest.ServiceIds)
+                {
+                    connection.Execute(addAppointmentService, new
+                    {
+                        AppointmentId = appointmentId,
+                        ServiceId = serviceId
+                    }, transaction: transaction);
+                }
+
+                transaction.Commit();
+            }
+            catch
+            {
+                transaction.Rollback();
+                throw;
+            }
         }
 
         public List<Appointment> GetAllAppointments()
         {
-            return _dbConnection.Query<Appointment>(getAllAppointments).AsList();
+            return dbConnection.Query<Appointment>(getAllAppointments).AsList();
         }
 
         public List<Appointment> GetAppointmentsByClient(int clientId)
         {
-            return _dbConnection.Query<Appointment>(appointmentsByClient, new { ClientId = clientId }).AsList();
+            return dbConnection.Query<Appointment>(appointmentsByClient, new { ClientId = clientId }).AsList();
         }
 
         public List<Appointment> GetAppointmentsByDate(DateTime appointmentDate)
         {
-            return _dbConnection.Query<Appointment>(appointmentsByDate, new { AppointmentDate = appointmentDate }).AsList();
+            return dbConnection.Query<Appointment>(appointmentsByDate, new { AppointmentDate = appointmentDate }).AsList();
         }
 
         public List<Appointment> GetAppointmentsByTechnician(int technicianId)
         {
-            return _dbConnection.Query<Appointment>(appointmentsByTechnician, new { TechnicianId = technicianId }).AsList();
+            return dbConnection.Query<Appointment>(appointmentsByTechnician, new { TechnicianId = technicianId }).AsList();
         }
 
         public void RemoveAppointment(int appointmentId)
         {
-            _dbConnection.Execute(removeAppointment, new
+            dbConnection.Execute(removeAppointment, new
             {
                 AppointmentId = appointmentId
             });
         }
 
+       public void ConfirmAppointment(ConfirmAppointmentRequest confirmAppointmentRequest)
+        {
+            dbConnection.Execute(confirmAppointment, new
+            {
+                AppointmentId = confirmAppointmentRequest.AppointmentId,
+                Status = confirmAppointmentRequest.Status
+            });
+        }
+
         #region queries
         private const string addAppointment = @"
-            INSERT  INTO public.appointments
-                (id, client_id, technician_id, appointment_date, appointment_time, duration, status, notes, paid)
-            VALUES (@Id, @ClientId, @TechnicianId, @AppointmentDate, @AppointmentTime, @Duration, @Status, @Notes, @Paid);
+            INSERT INTO public.appointments (
+                client_id,
+                technician_id,
+                appointment_date,
+                appointment_time,
+                duration,
+                status,
+                notes
+            ) VALUES (
+                @ClientId,
+                @TechnicianId,
+                @AppointmentDate,
+                @AppointmentTime,
+                @Duration,
+                @Status,
+                @Notes
+            ) RETURNING id;
+        ";
+
+        private const string addAppointmentService = @"
+            INSERT INTO public.appointment_services (appointment_id, service_id)
+            VALUES (@AppointmentId, @ServiceId);
         ";
 
         private const string getAllAppointments = @"
@@ -123,6 +173,12 @@ namespace AppLibrary.Repositories
 
         private const string removeAppointment = @"
             DELETE FROM public.appointments
+            WHERE id = @AppointmentId;
+        ";
+
+        private const string confirmAppointment = @"
+            UPDATE public.appointments
+            SET status = @Status
             WHERE id = @AppointmentId;
         ";
         #endregion

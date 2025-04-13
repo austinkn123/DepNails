@@ -5,20 +5,20 @@ namespace DepNails.Server.Controllers
 {
     [ApiController]
     [Route("[controller]")]
-    public class TechnicianController : ControllerBase
+    public class TechnicianController(ITechniciansRepository techniciansRepository) : ControllerBase
     {
-        private readonly ITechniciansRepository _techniciansRepository;
-
-        public TechnicianController(ITechniciansRepository techniciansRepository)
-        {
-            _techniciansRepository = techniciansRepository;
-        }
-
         [HttpGet]
         public IActionResult GetAllTechnicians()
         {
-            var technicians = _techniciansRepository.GetAllTechnicians();
+            var technicians = techniciansRepository.GetAllTechnicians();
             return Ok(technicians);
+        }
+
+        [HttpGet("{id}")]
+        public IActionResult GetTechnicianById(int id)
+        {
+            var technician = techniciansRepository.GetTechnicianById(id);
+            return Ok(technician);
         }
     }
 }

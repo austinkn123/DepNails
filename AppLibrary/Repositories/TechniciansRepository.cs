@@ -7,24 +7,17 @@ using System.Data;
 
 namespace AppLibrary.Repositories
 {
-    public class TechniciansRepository : ITechniciansRepository
+    public class TechniciansRepository(IDbConnection dbConnection) : ITechniciansRepository
     {
-        private readonly IDbConnection _dbConnection;
-
-        public TechniciansRepository(IDbConnection dbConnection)
-        {
-            _dbConnection = dbConnection;
-        }
-
         public List<Technician> GetAllTechnicians()
         {
-            return _dbConnection.Query<Technician>(getAllTechnicians).AsList();
+            return dbConnection.Query<Technician>(getAllTechnicians).AsList();
         }
 
         public Technician? GetTechnicianById(int id)
         {
             var parameters = new { Id = id };
-            return _dbConnection.QueryFirstOrDefault<Technician>(getTechnicianById, parameters);
+            return dbConnection.QueryFirstOrDefault<Technician>(getTechnicianById, parameters);
         }
 
 

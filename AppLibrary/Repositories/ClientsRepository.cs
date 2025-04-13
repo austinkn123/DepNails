@@ -6,17 +6,11 @@ using System.Data;
 
 namespace AppLibrary.Repositories
 {
-    public class ClientsRepository : IClientsRepository
+    public class ClientsRepository(IDbConnection dbConnection) : IClientsRepository
     {
-        private readonly IDbConnection _dbConnection;
-
-        public ClientsRepository(IDbConnection dbConnection)
-        {
-            _dbConnection = dbConnection;
-        }
         public void AddClient(Client client)
         {
-            _dbConnection.Execute(AddClientQuery, new
+            dbConnection.Execute(AddClientQuery, new
             {
                 client.FirstName,
                 client.LastName,
@@ -29,17 +23,17 @@ namespace AppLibrary.Repositories
 
         public void RemoveClient(int id)
         {
-            _dbConnection.Execute(RemoveClientQuery, new { Id = id });
+            dbConnection.Execute(RemoveClientQuery, new { Id = id });
         }
 
         public List<Client> GetAllClients()
         {
-            return _dbConnection.Query<Client>(GetAllClientsQuery).ToList();
+            return dbConnection.Query<Client>(GetAllClientsQuery).ToList();
         }
 
         public Client? GetClient(int id)
         {
-            return _dbConnection.QueryFirstOrDefault<Client>(GetClientQuery, new { Id = id });
+            return dbConnection.QueryFirstOrDefault<Client>(GetClientQuery, new { Id = id });
         }
 
         #region queries

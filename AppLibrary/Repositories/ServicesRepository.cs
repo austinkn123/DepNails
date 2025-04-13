@@ -5,23 +5,16 @@ using System.Data;
 
 namespace AppLibrary.Repositories
 {
-    public class ServicesRepository : IServicesRepository
+    public class ServicesRepository(IDbConnection dbConnection) : IServicesRepository
     {
-        private readonly IDbConnection _dbConnection;
-
-        public ServicesRepository(IDbConnection dbConnection)
-        {
-            _dbConnection = dbConnection;
-        }
-
         public List<Service> GetAllServices()
         {
-            return _dbConnection.Query<Service>(getAllServices).ToList();
+            return dbConnection.Query<Service>(getAllServices).ToList();
         }
 
         public Service? GetServiceDetails(int serviceId)
         {
-            return _dbConnection.QueryFirstOrDefault<Service>(getServiceDetails, new { ServiceId = serviceId });
+            return dbConnection.QueryFirstOrDefault<Service>(getServiceDetails, new { ServiceId = serviceId });
         }
 
         #region queries
