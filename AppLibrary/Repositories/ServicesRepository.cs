@@ -1,5 +1,6 @@
 ﻿using AppLibrary.Interfaces;
 using AppLibrary.Models;
+using Dapper;
 using System.Data;
 
 namespace AppLibrary.Repositories
@@ -13,24 +14,34 @@ namespace AppLibrary.Repositories
             _dbConnection = dbConnection;
         }
 
-        public void AddService(string serviceName)
-        {
-            throw new NotImplementedException();
-        }
-
         public List<Service> GetAllServices()
         {
-            throw new NotImplementedException();
+            return _dbConnection.Query<Service>(getAllServices).ToList();
         }
 
-        public string GetServiceDetails(string serviceName)
+        public Service? GetServiceDetails(int serviceId)
         {
-            throw new NotImplementedException();
+            return _dbConnection.QueryFirstOrDefault<Service>(getServiceDetails, new { ServiceId = serviceId });
         }
 
-        public void RemoveService(string serviceName)
-        {
-            throw new NotImplementedException();
-        }
+        #region queries
+
+        private const string getAllServices = @"
+            SELECT service_name AS ServiceName,
+                   service_description AS ServiceDescription,
+                   service_price AS ServicePrice
+            FROM public.services;
+        ";
+
+        private const string getServiceDetails = @"
+            SELECT service_name AS ServiceName,
+                   service_description AS ServiceDescription,
+                   service_price AS ServicePrice
+            FROM public.services
+            WHERE service_name = @ServiceId;
+        ";
+
+
+        #endregion
     }
 }

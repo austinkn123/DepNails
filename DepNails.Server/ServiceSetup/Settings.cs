@@ -15,7 +15,8 @@ namespace DepNails.Server.ServiceSetup
 
             services.AddTransient<ITechniciansRepository>(provider => new TechniciansRepository(dbConnection));
             services.AddTransient<IServicesRepository>(provider => new ServicesRepository(dbConnection));
-            // Add other repositories or services here
+            services.AddTransient<IClientsRepository>(provider => new ClientsRepository(dbConnection));
+            services.AddTransient<ISchedulingRepository>(provider => new SchedulingRepository(dbConnection));
         }
     }
 }

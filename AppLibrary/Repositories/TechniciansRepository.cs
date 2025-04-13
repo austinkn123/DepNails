@@ -15,25 +15,18 @@ namespace AppLibrary.Repositories
         {
             _dbConnection = dbConnection;
         }
-        public void AddTechnician(string name)
-        {
-            throw new NotImplementedException();
-        }
 
         public List<Technician> GetAllTechnicians()
         {
             return _dbConnection.Query<Technician>(getAllTechnicians).AsList();
         }
 
-        public string GetTechnicianDetails(int technicianId)
+        public Technician? GetTechnicianById(int id)
         {
-            throw new NotImplementedException();
+            var parameters = new { Id = id };
+            return _dbConnection.QueryFirstOrDefault<Technician>(getTechnicianById, parameters);
         }
 
-        public void RemoveTechnician(int technicianId)
-        {
-            throw new NotImplementedException();
-        }
 
         #region queries
         private const string getAllTechnicians = @"
@@ -44,6 +37,17 @@ namespace AppLibrary.Repositories
                    phone AS Phone,
                    created_at AS CreatedAt
 	        FROM public.technicians;
+        ";
+
+        private const string getTechnicianById = @"
+            SELECT id as Id,
+                   first_name AS FirstName,
+                   last_name AS LastName,
+                   email AS Email,
+                   phone AS Phone,
+                   created_at AS CreatedAt
+	        FROM public.technicians
+            WHERE id = @Id;
         ";
 
         #endregion
