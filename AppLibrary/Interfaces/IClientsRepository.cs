@@ -7,6 +7,6 @@ namespace AppLibrary.Interfaces
         void AddClient(Client client);
         void RemoveClient(int id);
         List<Client> GetAllClients();
-        Client  GetClient(int id);
+        Client?  GetClient(int id);
     }
 }

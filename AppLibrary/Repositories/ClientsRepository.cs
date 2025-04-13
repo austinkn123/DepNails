@@ -37,7 +37,7 @@ namespace AppLibrary.Repositories
             return _dbConnection.Query<Client>(GetAllClientsQuery).ToList();
         }
 
-        public Client GetClient(int id)
+        public Client? GetClient(int id)
         {
             return _dbConnection.QueryFirstOrDefault<Client>(GetClientQuery, new { Id = id });
         }
