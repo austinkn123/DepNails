@@ -49,12 +49,12 @@ namespace AppLibrary.Repositories
         ";
 
         private const string GetAllClientsQuery = @"
-            SELECT id, first_name, last_name, email, phone, date_of_birth, created_at
+            SELECT id, first_name as firstName, last_name as lastName, email, phone, date_of_birth as dateOfBirth, created_at as createdAt
 	        FROM public.clients;
         ";
 
         private const string GetClientQuery = @"
-            SELECT id, first_name, last_name, email, phone, date_of_birth, created_at
+            SELECT id, first_name as firstName, last_name as lastName, email, phone, date_of_birth as dateOfBirth, created_at as createdAt
             FROM public.clients
             WHERE Id = @Id
         ";

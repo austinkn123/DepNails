@@ -2,24 +2,40 @@
 using AppLibrary.Models;
 using Dapper;
 using System.Data;
-
+using System.Data.Common;
 
 namespace AppLibrary.Repositories
 {
     public class SchedulingRepository(IDbConnection dbConnection) : ISchedulingRepository
     {
-        //TODO: need to add and connect services to appointments
+        public List<Appointment> GetAllAppointments()
+        {
+            return dbConnection.Query<Appointment>(getAllAppointments).AsList();
+        }
+
+        public List<Appointment> GetAppointmentsByClient(int clientId)
+        {
+            return dbConnection.Query<Appointment>(appointmentsByClient, new { ClientId = clientId }).AsList();
+        }
+
+        public List<Appointment> GetAppointmentsByDate(DateTime bookingDate)
+        {
+            return dbConnection.Query<Appointment>(appointmentsByDate, new { BookingDate = bookingDate }).AsList();
+        }
+
+        public List<Appointment> GetAppointmentsByTechnician(int technicianId)
+        {
+            return dbConnection.Query<Appointment>(appointmentsByTechnician, new { TechnicianId = technicianId }).AsList();
+        }
+
         public void ScheduleAppointment(AppointmentRequest appointmentRequest)
         {
-            using var connection = dbConnection;
-            connection.Open();
-
-            using var transaction = connection.BeginTransaction();
+            using var transaction = dbConnection.BeginTransaction();
 
             try
             {
                 // Insert into appointments and get the new ID
-                var appointmentId = connection.ExecuteScalar<int>(
+                var appointmentId = dbConnection.ExecuteScalar<int>(
                     addAppointment,
                     new
                     {
@@ -34,43 +50,31 @@ namespace AppLibrary.Repositories
                     transaction: transaction
                 );
 
-                // Insert each service into the junction table
-                foreach (var serviceId in appointmentRequest.ServiceIds)
+                // Insert services for the appointment
+                foreach (var svc in appointmentRequest.Services)
                 {
-                    connection.Execute(addAppointmentService, new
-                    {
-                        AppointmentId = appointmentId,
-                        ServiceId = serviceId
-                    }, transaction: transaction);
+                    dbConnection.Execute(
+                        addServiceSql,
+                        new
+                        {
+                            svc.ServiceName,
+                            svc.Description,
+                            svc.Duration,
+                            svc.Price,
+                            AppointmentId = appointmentId
+                        },
+                        transaction: transaction
+                    );
                 }
 
                 transaction.Commit();
             }
-            catch
+            catch (Exception ex)
             {
                 transaction.Rollback();
-                throw;
+                // Log the exception (if logging is set up)
+                throw new InvalidOperationException("An error occurred while scheduling the appointment.", ex);
             }
-        }
-
-        public List<Appointment> GetAllAppointments()
-        {
-            return dbConnection.Query<Appointment>(getAllAppointments).AsList();
-        }
-
-        public List<Appointment> GetAppointmentsByClient(int clientId)
-        {
-            return dbConnection.Query<Appointment>(appointmentsByClient, new { ClientId = clientId }).AsList();
-        }
-
-        public List<Appointment> GetAppointmentsByDate(DateTime appointmentDate)
-        {
-            return dbConnection.Query<Appointment>(appointmentsByDate, new { AppointmentDate = appointmentDate }).AsList();
-        }
-
-        public List<Appointment> GetAppointmentsByTechnician(int technicianId)
-        {
-            return dbConnection.Query<Appointment>(appointmentsByTechnician, new { TechnicianId = technicianId }).AsList();
         }
 
         public void RemoveAppointment(int appointmentId)
@@ -85,8 +89,8 @@ namespace AppLibrary.Repositories
         {
             dbConnection.Execute(confirmAppointment, new
             {
-                AppointmentId = confirmAppointmentRequest.AppointmentId,
-                Status = confirmAppointmentRequest.Status
+                confirmAppointmentRequest.AppointmentId,
+                confirmAppointmentRequest.Status
             });
         }
 
@@ -111,10 +115,21 @@ namespace AppLibrary.Repositories
             ) RETURNING id;
         ";
 
-        private const string addAppointmentService = @"
-            INSERT INTO public.appointment_services (appointment_id, service_id)
-            VALUES (@AppointmentId, @ServiceId);
-        ";
+        const string addServiceSql = @"
+        INSERT INTO public.services (
+            service_name,
+            description,
+            duration,
+            price,
+            appointment_id
+        ) VALUES (
+            @ServiceName,
+            @Description,
+            @Duration,
+            @Price,
+            @AppointmentId
+        );
+    ";
 
         private const string getAllAppointments = @"
             SELECT id, 
@@ -124,8 +139,7 @@ namespace AppLibrary.Repositories
                     appointment_time, 
                     duration, 
                     status, 
-                    notes, 
-                    paid
+                    notes
 	        FROM public.appointments;
         ";
 
@@ -137,8 +151,7 @@ namespace AppLibrary.Repositories
                     appointment_time, 
                     duration, 
                     status, 
-                    notes, 
-                    paid
+                    notes
             FROM public.appointments
             WHERE client_id = @ClientId;
         ";
@@ -151,10 +164,9 @@ namespace AppLibrary.Repositories
                     appointment_time, 
                     duration, 
                     status, 
-                    notes, 
-                    paid
+                    notes
             FROM public.appointments
-            WHERE appointment_date = @AppointmentDate;
+            WHERE appointment_date = @BookingDate;
         ";
 
         private const string appointmentsByTechnician = @"
@@ -165,13 +177,15 @@ namespace AppLibrary.Repositories
                     appointment_time, 
                     duration, 
                     status, 
-                    notes, 
-                    paid
+                    notes
             FROM public.appointments
             WHERE technician_id = @TechnicianId;
         ";
 
         private const string removeAppointment = @"
+            DELETE FROM public.services
+            WHERE appointment_id = @AppointmentId;
+
             DELETE FROM public.appointments
             WHERE id = @AppointmentId;
         ";

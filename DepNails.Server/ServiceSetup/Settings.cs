@@ -2,6 +2,7 @@
 using AppLibrary.Repositories;
 using Microsoft.Extensions.DependencyInjection;
 using Npgsql;
+using System.Data;
 
 namespace DepNails.Server.ServiceSetup
 {
@@ -9,14 +10,19 @@ namespace DepNails.Server.ServiceSetup
     {
         public static void AddServices(this IServiceCollection services, string connectionString)
         {
-            var dbConnection = new NpgsqlConnection(connectionString);
-            // Register the connection string as a singleton
-            services.AddSingleton(connectionString);
+            // Register the database connection as a scoped service
+            services.AddSingleton<IDbConnection>(provider =>
+            {
+                var connection = new NpgsqlConnection(connectionString);
+                connection.Open(); 
+                return connection;
+            });
 
-            services.AddTransient<ITechniciansRepository>(provider => new TechniciansRepository(dbConnection));
-            services.AddTransient<IServicesRepository>(provider => new ServicesRepository(dbConnection));
-            services.AddTransient<IClientsRepository>(provider => new ClientsRepository(dbConnection));
-            services.AddTransient<ISchedulingRepository>(provider => new SchedulingRepository(dbConnection));
+            // Register repositories
+            services.AddScoped<ITechniciansRepository, TechniciansRepository>();
+            services.AddScoped<IServicesRepository, ServicesRepository>();
+            services.AddScoped<IClientsRepository, ClientsRepository>();
+            services.AddScoped<ISchedulingRepository, SchedulingRepository>();
         }
     }
 }

@@ -20,18 +20,22 @@ namespace AppLibrary.Repositories
         #region queries
 
         private const string getAllServices = @"
-            SELECT service_name AS ServiceName,
-                   service_description AS ServiceDescription,
-                   service_price AS ServicePrice
-            FROM public.services;
+            SELECT id, 
+                service_name as ServiceName, 
+                description, 
+                duration, 
+                price
+	        FROM public.services;
         ";
 
         private const string getServiceDetails = @"
-            SELECT service_name AS ServiceName,
-                   service_description AS ServiceDescription,
-                   service_price AS ServicePrice
-            FROM public.services
-            WHERE service_name = @ServiceId;
+            SELECT id, 
+                service_name as ServiceName, 
+                description, 
+                duration, 
+                price
+	        FROM public.services
+            WHERE id = @ServiceId;
         ";
 
 

@@ -11,7 +11,7 @@ namespace AppLibrary.Models
         public int Duration { get; set; }
         public string Status { get; set; } = "pending";
         public string? Notes { get; set; }
-        public List<int> ServiceIds { get; set; } = new();
+        public List<Service> Services { get; set; } = new();
     }
 
     public class ConfirmAppointmentRequest
@@ -30,6 +30,5 @@ namespace AppLibrary.Models
         public int? Duration { get; set; }
         public string? Status { get; set; }
         public string? Notes { get; set; }
-        public bool Paid { get; set; }
     }
 }
