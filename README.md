@@ -94,6 +94,6 @@ DepNails is a full-stack application designed to manage scheduling, services, te
 
 ## Contributors
 
-- **Developer**: [Your Name]
+- **Developer**: Austin Nguyen
 
 Feel free to contribute or report issues to improve the application!
