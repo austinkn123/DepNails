@@ -88,7 +88,6 @@ DepNails is a full-stack application designed to manage scheduling, services, te
 ## Future Enhancements
 
 - Add authentication and authorization using JWT.
-- Implement TypeScript for type safety in the frontend.
 - Add unit and integration tests for both frontend and backend.
 
 ---
