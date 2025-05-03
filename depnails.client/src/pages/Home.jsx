@@ -1,11 +1,14 @@
-
+import { Button, Typography } from '@mui/material';
 
 
 const Home = () => {
     return (
         <div>
-            <h1>Welcome to the Home Page</h1>
-            <p>This is the home page of the application.</p>
+            <Typography variant="h3" component="h2">
+                Welcome
+            </Typography>
+
+            <Button variant="contained">Click Me</Button>
         </div>
     );
 }

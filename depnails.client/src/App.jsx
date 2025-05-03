@@ -7,13 +7,16 @@ import {
 import { ToastContainer } from 'react-toastify';
 import Home from "./pages/Home";
 import NotFound from "./pages/NotFound";
-
+import { theme } from "../layout/Theme";
+import { ThemeProvider } from '@mui/material/styles';
+import NavBar from "../layout/NavBar";
 
 function App() {
 
 
     return (
-        <div>
+        <ThemeProvider theme={theme}>
+        <NavBar />
             <Router>
                 <Routes>
                     <Route path='/' element={<Home />} />
@@ -22,7 +25,7 @@ function App() {
                 </Routes>
                 <ToastContainer />
             </Router>
-        </div>
+        </ThemeProvider>
     );
     
 }
