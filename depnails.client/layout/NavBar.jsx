@@ -11,9 +11,17 @@ import Button from '@mui/material/Button';
 import Tooltip from '@mui/material/Tooltip';
 import MenuItem from '@mui/material/MenuItem';
 import AccountCircleIcon from '@mui/icons-material/AccountCircle';
+import { Link } from "react-router-dom";
 
-const pages = ['Book', 'Services', 'Contact Us'];
-const settings = ['Logout'];
+const pages = [
+    { name: 'Home', path: '' },
+    { name: 'Book', path: '/appointment' },
+    { name: 'Services', path: '/services' },
+    { name: 'Contact Us', path: '/contact-us' },
+];
+const settings = [
+    { name: 'Log out', path: '/login' },
+];
 
 function NavBar() {
     const [anchorElNav, setAnchorElNav] = useState(null);
@@ -68,9 +76,14 @@ function NavBar() {
                             onClose={() => setAnchorElNav(null)}
                             sx={{ display: { xs: 'block', md: 'none' } }}
                         >
-                            {pages.map((page) => (
-                                <MenuItem key={page} onClick={() => setAnchorElNav(null)}>
-                                    <Typography sx={{ textAlign: 'center' }}>{page}</Typography>
+                            {pages.map((page, index) => (
+                                <MenuItem
+                                    key={`${page}-${index}`}
+                                    component={Link}
+                                    to={`${page.path}`}
+                                    onClick={() => setAnchorElNav(null)}
+                                >
+                                    <Typography textAlign="center">{page.name}</Typography>
                                 </MenuItem>
                             ))}
                         </Menu>
@@ -94,13 +107,15 @@ function NavBar() {
                         Dep Nails
                     </Typography>
                     <Box sx={{ flexGrow: 1, display: { xs: 'none', md: 'flex' } }}>
-                        {pages.map((page) => (
+                        {pages.map((page, index) => (
                             <Button
-                                key={page}
+                                key={`${page}-${index}`}
+                                component={Link}
+                                to={`${page.path}`}
                                 onClick={() => setAnchorElNav(null)}
-                                sx={{ my: 2, color: 'white', display: 'block' }}
+                                sx={{ mr: 1, my: 2, color: 'white', display: 'block' }}
                             >
-                                {page}
+                                {page.name}
                             </Button>
                         ))}
                     </Box>
@@ -126,9 +141,20 @@ function NavBar() {
                             open={Boolean(anchorElUser)}
                             onClose={() => setAnchorElUser(null)}
                         >
-                            {settings.map((setting) => (
-                                <MenuItem key={setting} onClick={() => setAnchorElUser(null)}>
-                                    <Typography sx={{ textAlign: 'center' }}>{setting}</Typography>
+                            {settings.map((setting, index) => (
+                                <MenuItem
+                                    key={`${setting}-${index}`}
+                                    onClick={() => {
+                                        setAnchorElUser(null);
+                                        if (setting.name === 'Log out') {
+                                            sessionStorage.clear();
+                                            logout();
+                                        }
+                                    }}
+                                    component={Link}
+                                    to={`${setting.path}`}
+                                >
+                                    <Typography textAlign="center">{setting.name}</Typography>
                                 </MenuItem>
                             ))}
                         </Menu>

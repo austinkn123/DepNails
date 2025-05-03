@@ -1,14 +1,13 @@
 import { Typography } from '@mui/material';
 
-
-const NotFound = () => {
+const Appointment = () => {
     return (
         <div>
             <Typography variant="h3" component="h2">
-                Login
+                Appointment
             </Typography>
         </div>
     );
 }
 
-export default NotFound;
+export default Appointment;
