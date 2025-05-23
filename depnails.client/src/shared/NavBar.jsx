@@ -13,24 +13,29 @@ import MenuItem from '@mui/material/MenuItem';
 import AccountCircleIcon from '@mui/icons-material/AccountCircle';
 import { Link } from "react-router-dom";
 
+// Defines the navigation links for the header
 const pages = [
     { name: 'Home', path: '' },
     { name: 'Book', path: '/appointment' },
     { name: 'Services', path: '/services' },
     { name: 'Contact Us', path: '/contact-us' },
 ];
+// Defines the user account settings options
 const settings = [
     { name: 'Log out', path: '/login' },
 ];
 
 function NavBar() {
-    const [anchorElNav, setAnchorElNav] = useState(null);
-    const [anchorElUser, setAnchorElUser] = useState(null);
+    // State for controlling the mobile navigation menu's anchor element
+    const [navMenuAnchor, setNavMenuAnchor] = useState(null);
+    // State for controlling the user settings menu's anchor element
+    const [userMenuAnchor, setUserMenuAnchor] = useState(null);
 
     return (
         <AppBar position="static">
             <Container maxWidth="xl">
                 <Toolbar disableGutters>
+                    {/* Logo/Brand Name - Visible on medium screens and up */}
                     <Typography
                         variant="h6"
                         noWrap
@@ -38,7 +43,7 @@ function NavBar() {
                         href="#app-bar-with-responsive-menu"
                         sx={{
                             mr: 2,
-                            display: { xs: 'none', md: 'flex' },
+                            display: { xs: 'none', md: 'flex' }, // Hidden on extra-small/small, visible on medium and up
                             fontFamily: 'monospace',
                             fontWeight: 700,
                             letterSpacing: '.3rem',
@@ -49,20 +54,21 @@ function NavBar() {
                         Dep Nails
                     </Typography>
 
-                    <Box sx={{ flexGrow: 1, display: { xs: 'flex', md: 'none' } }}>
+                    {/* Mobile Navigation Menu Section - Visible on extra-small and small screens */}
+                    <Box sx={{ flexGrow: 1, display: { xs: 'flex', md: 'none' } }}> {/* Visible on xs/sm, hidden on md and up */}
                         <IconButton
                             size="large"
                             aria-label="account of current user"
                             aria-controls="menu-appbar"
                             aria-haspopup="true"
-                            onClick={(e) => setAnchorElNav(e.currentTarget)}
+                            onClick={(e) => setNavMenuAnchor(e.currentTarget)} // Opens the mobile navigation menu
                             color="inherit"
                         >
                             <MenuIcon />
                         </IconButton>
                         <Menu
                             id="menu-appbar"
-                            anchorEl={anchorElNav}
+                            anchorEl={navMenuAnchor}
                             anchorOrigin={{
                                 vertical: 'bottom',
                                 horizontal: 'left',
@@ -72,22 +78,24 @@ function NavBar() {
                                 vertical: 'top',
                                 horizontal: 'left',
                             }}
-                            open={Boolean(anchorElNav)}
-                            onClose={() => setAnchorElNav(null)}
-                            sx={{ display: { xs: 'block', md: 'none' } }}
+                            open={Boolean(navMenuAnchor)} // Controls visibility of the menu
+                            onClose={() => setNavMenuAnchor(null)} // Closes the menu
+                            sx={{ display: { xs: 'block', md: 'none' } }} // Display logic for mobile menu
                         >
+                            {/* Maps over the 'pages' array to create menu items for mobile */}
                             {pages.map((page, index) => (
                                 <MenuItem
                                     key={`${page}-${index}`}
                                     component={Link}
                                     to={`${page.path}`}
-                                    onClick={() => setAnchorElNav(null)}
+                                    onClick={() => setNavMenuAnchor(null)} // Closes menu on item click
                                 >
                                     <Typography textAlign="center">{page.name}</Typography>
                                 </MenuItem>
                             ))}
                         </Menu>
                     </Box>
+                    {/* Mobile Logo/Brand Name - Visible on extra-small and small screens, fills available space */}
                     <Typography
                         variant="h5"
                         noWrap
@@ -95,8 +103,8 @@ function NavBar() {
                         href="#app-bar-with-responsive-menu"
                         sx={{
                             mr: 2,
-                            display: { xs: 'flex', md: 'none' },
-                            flexGrow: 1,
+                            display: { xs: 'flex', md: 'none' }, // Visible on xs/sm, hidden on md and up
+                            flexGrow: 1, // Allows the element to grow and fill available space
                             fontFamily: 'monospace',
                             fontWeight: 700,
                             letterSpacing: '.3rem',
@@ -106,29 +114,32 @@ function NavBar() {
                     >
                         Dep Nails
                     </Typography>
-                    <Box sx={{ flexGrow: 1, display: { xs: 'none', md: 'flex' } }}>
+                    {/* Desktop Navigation Links Section - Visible on medium screens and up */}
+                    <Box sx={{ flexGrow: 1, display: { xs: 'none', md: 'flex' } }}> {/* Hidden on xs/sm, visible on md and up */}
+                        {/* Maps over the 'pages' array to create navigation buttons for desktop */}
                         {pages.map((page, index) => (
                             <Button
                                 key={`${page}-${index}`}
                                 component={Link}
                                 to={`${page.path}`}
-                                onClick={() => setAnchorElNav(null)}
+                                onClick={() => setNavMenuAnchor(null)} // Though navMenuAnchor is for mobile, this ensures consistency if reused
                                 sx={{ mr: 1, my: 2, color: 'white', display: 'block' }}
                             >
                                 {page.name}
                             </Button>
                         ))}
                     </Box>
-                    <Box sx={{ flexGrow: 0 }}>
+                    {/* User Settings Menu Section */}
+                    <Box sx={{ flexGrow: 0 }}> {/* Prevents this box from growing */}
                         <Tooltip title="Log Out">
-                            <IconButton onClick={(e) => setAnchorElUser(e.currentTarget)} sx={{ p: 0 }}>
+                            <IconButton onClick={(e) => setUserMenuAnchor(e.currentTarget)} sx={{ p: 0 }}> {/* Opens user settings menu */}
                                 <AccountCircleIcon />
                             </IconButton>
                         </Tooltip>
                         <Menu
                             sx={{ mt: '45px' }}
                             id="menu-appbar"
-                            anchorEl={anchorElUser}
+                            anchorEl={userMenuAnchor}
                             anchorOrigin={{
                                 vertical: 'top',
                                 horizontal: 'right',
@@ -138,17 +149,18 @@ function NavBar() {
                                 vertical: 'top',
                                 horizontal: 'right',
                             }}
-                            open={Boolean(anchorElUser)}
-                            onClose={() => setAnchorElUser(null)}
+                            open={Boolean(userMenuAnchor)} // Controls visibility of the user menu
+                            onClose={() => setUserMenuAnchor(null)} // Closes the user menu
                         >
+                            {/* Maps over the 'settings' array to create user menu items */}
                             {settings.map((setting, index) => (
                                 <MenuItem
                                     key={`${setting}-${index}`}
                                     onClick={() => {
-                                        setAnchorElUser(null);
+                                        setUserMenuAnchor(null); // Closes menu on item click
                                         if (setting.name === 'Log out') {
-                                            sessionStorage.clear();
-                                            logout();
+                                            sessionStorage.clear(); // Clears session storage on logout
+                                            logout(); // Calls the logout function (ensure this is defined elsewhere)
                                         }
                                     }}
                                     component={Link}

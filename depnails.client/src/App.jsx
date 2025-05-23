@@ -9,7 +9,7 @@ import Home from "./pages/Home";
 import NotFound from "./pages/NotFound";
 import { theme } from "../layout/Theme";
 import { ThemeProvider } from '@mui/material/styles';
-import NavBar from "../layout/NavBar";
+import NavBar from "./shared/NavBar";
 import Appointment from "./pages/Appointment";
 import Services from "./pages/Services";
 import ContactUs from "./pages/ContactUs";
