@@ -1,9 +1,7 @@
 // Filepath: c:\Users\Austin\Projects\DepNails\DepNails.Server\Controllers\AuthController.cs
 using AppLibrary.Interfaces;
 using AppLibrary.Models.Account;
-using DepNails.Server.Models.DTOs;
 using Microsoft.AspNetCore.Mvc;
-using System.Threading.Tasks;
 
 namespace DepNails.Server.Controllers
 {
