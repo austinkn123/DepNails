@@ -4,7 +4,7 @@ using Amazon.CognitoIdentityProvider.Model;
 using Amazon.Extensions.CognitoAuthentication;
 using AppLibrary.Interfaces;
 using AppLibrary.Models.Account;
-using Microsoft.Extensions.Configuration;
+using AppLibrary.Models.Configuration;
 
 namespace DepNails.Server.Services
 {
@@ -15,11 +15,13 @@ namespace DepNails.Server.Services
         private readonly string _clientId;
         private readonly string _userPoolId;
 
-        public AuthService(IAmazonCognitoIdentityProvider cognitoClient, IConfiguration configuration)
+        public AuthService(IAmazonCognitoIdentityProvider cognitoClient, ApplicationSettings appSettings)
         {
             _cognitoClient = cognitoClient;
-            _userPoolId = configuration["AWS:Cognito:UserPoolId"];
-            _clientId = configuration["AWS:Cognito:AppClientId"];
+            // Access Cognito settings directly from ApplicationSettings
+            var cognitoSettings = appSettings.Cognito ?? throw new ArgumentNullException(nameof(appSettings.Cognito));
+            _userPoolId = cognitoSettings.UserPoolId ?? throw new ArgumentNullException(nameof(cognitoSettings.UserPoolId));
+            _clientId = cognitoSettings.AppClientId ?? throw new ArgumentNullException(nameof(cognitoSettings.AppClientId));
             _userPool = new CognitoUserPool(_userPoolId, _clientId, _cognitoClient);
         }
 
