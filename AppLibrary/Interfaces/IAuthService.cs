@@ -1,4 +1,5 @@
 // Filepath: c:\Users\Austin\Projects\DepNails\AppLibrary\Interfaces\IAuthService.cs
+using AppLibrary.Models.Account;
 using DepNails.Server.Models.DTOs;
 using System.Threading.Tasks;
 

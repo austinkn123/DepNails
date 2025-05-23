@@ -3,10 +3,8 @@ using Amazon.CognitoIdentityProvider;
 using Amazon.CognitoIdentityProvider.Model;
 using Amazon.Extensions.CognitoAuthentication;
 using AppLibrary.Interfaces;
-using DepNails.Server.Models.DTOs;
+using AppLibrary.Models.Account;
 using Microsoft.Extensions.Configuration;
-using System.Collections.Generic;
-using System.Threading.Tasks;
 
 namespace DepNails.Server.Services
 {

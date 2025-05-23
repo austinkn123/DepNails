@@ -1,5 +1,4 @@
-// Filepath: c:\Users\Austin\Projects\DepNails\DepNails.Server\Models\DTOs\AuthResponse.cs
-namespace DepNails.Server.Models.DTOs
+namespace AppLibrary.Models.Account
 {
     public class AuthResponse
     {
