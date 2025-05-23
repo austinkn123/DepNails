@@ -1,12 +1,16 @@
+using Amazon.CognitoIdentityProvider;
+using AppLibrary.Interfaces;
+using DepNails.Server.Services;
 using DepNails.Server.ServiceSetup;
 
 var builder = WebApplication.CreateBuilder(args);
 
 // Add services to the container.
-
-
 builder.Services.AddServices(builder.Configuration.GetConnectionString("LocalConnection"));
 
+// Add AWS Cognito services
+builder.Services.AddAWSService<IAmazonCognitoIdentityProvider>();
+builder.Services.AddScoped<IAuthService, AuthService>();
 
 builder.Services.AddControllers();
 // Learn more about configuring OpenAPI at https://aka.ms/aspnet/openapi
@@ -18,6 +22,7 @@ app.UseDefaultFiles();
 app.MapStaticAssets();
 
 // Configure the HTTP request pipeline.
+app.UseAuthentication(); // Add this line to enable authentication
 if (app.Environment.IsDevelopment())
 {
     app.MapOpenApi();
