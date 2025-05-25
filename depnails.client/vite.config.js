@@ -46,11 +46,12 @@ export default defineConfig({
         }
     },
     server: {
+        port: 5173, // Explicitly set Vite's development server port
         proxy: {
-            '/api': {
+            '/api': { // Proxy requests from /api
                 target: target,         // Forward to ASP.NET Core server
                 changeOrigin: true,     // Ensure the origin header matches the target
-                secure: false           // Allow self-signed certificates
+                secure: false          // Allow self-signed certificates
             }
         },
         https: {

@@ -5,11 +5,11 @@ using Microsoft.AspNetCore.Mvc;
 namespace DepNails.Server.Controllers
 {
     [ApiController]
-    [Route("[controller]")]
-    public class SchedulingController(ISchedulingRepository schedulingRepository) : ControllerBase
+    [Route("api/[controller]")]
+    public class AppointmentController(ISchedulingRepository schedulingRepository) : ControllerBase
     {
         [HttpGet]
-        [Route("appointments")]
+        [Route("all")]
         public IActionResult GetAllAppointments()
         {
             var appointments = schedulingRepository.GetAllAppointments();

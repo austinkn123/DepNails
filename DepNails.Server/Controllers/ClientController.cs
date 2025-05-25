@@ -5,7 +5,7 @@ using Microsoft.AspNetCore.Mvc;
 namespace DepNails.Server.Controllers
 {
     [ApiController]
-    [Route("[controller]")]
+    [Route("api/[controller]")]
     public class ClientController(IClientsRepository clientsRepository) : ControllerBase
     {
         
