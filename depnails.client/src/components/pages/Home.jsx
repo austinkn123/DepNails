@@ -1,5 +1,5 @@
 import { Button, Typography } from '@mui/material';
-import {getAllAppointments } from '../../queries/Home';
+import {getAllAppointments } from '../../../queries/Home';
 
 
 const Home = () => {

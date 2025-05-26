@@ -27,30 +27,47 @@ namespace DepNails.Server.Services
 
         public async Task<AuthResponse> SignUpAsync(AccountSignUpRequest request)
         {
-            var signUpRequest = new SignUpRequest 
+            try
             {
-                ClientId = _clientId,
-                Username = request.Username,
-                Password = request.Password,
-                UserAttributes = new List<AttributeType>
+                var signUpRequest = new SignUpRequest
+                {
+                    ClientId = _clientId,
+                    Username = request.Email, // Changed from request.Username to request.Email
+                    Password = request.Password,
+                    UserAttributes = new List<AttributeType>
                 {
                     new AttributeType { Name = "email", Value = request.Email }
                 }
-            };
+                };
 
-            await _cognitoClient.SignUpAsync(signUpRequest);
+                await _cognitoClient.SignUpAsync(signUpRequest); // No need to capture response if not used
 
-            // Optionally, you might want to automatically confirm the user or handle confirmation separately
-            // For simplicity, this example assumes the user is confirmed automatically or via another process
-
-            // After sign-up, you could automatically log the user in, or require them to log in separately
-            // Here we proceed to log them in to get tokens
-            return await LoginAsync(new LoginRequest { Username = request.Username, Password = request.Password });
+                // Return a meaningful AuthResponse, adjust as necessary for your application
+                // This is a placeholder response. Cognito typically requires user confirmation first.
+                return new AuthResponse
+                {
+                    IdToken = null,
+                    AccessToken = null,
+                    RefreshToken = null,
+                    ExpiresIn = null,
+                    TokenType = "Bearer"
+                };
+            }
+            catch (Exception ex)
+            {
+                // Log the exception here  
+                Console.WriteLine($"Exception occurred: {ex.Message}");
+                Console.WriteLine($"Stack Trace: {ex.StackTrace}");
+                throw;
+            }
+            
         }
 
         public async Task<AuthResponse> LoginAsync(LoginRequest request)
         {
-            var user = new CognitoUser(request.Username, _clientId, _userPool, _cognitoClient);
+            // Ensure request.Email is not null before using it.
+            var userName = request.Email ?? throw new ArgumentNullException(nameof(request.Email));
+            var user = new CognitoUser(userName, _clientId, _userPool, _cognitoClient); 
             var authRequest = new InitiateSrpAuthRequest
             {
                 Password = request.Password
@@ -60,11 +77,11 @@ namespace DepNails.Server.Services
 
             return new AuthResponse
             {
-                IdToken = authResponse.AuthenticationResult.IdToken,
-                AccessToken = authResponse.AuthenticationResult.AccessToken,
-                RefreshToken = authResponse.AuthenticationResult.RefreshToken,
-                ExpiresIn = authResponse.AuthenticationResult.ExpiresIn,
-                TokenType = authResponse.AuthenticationResult.TokenType
+                IdToken = authResponse.AuthenticationResult?.IdToken,
+                AccessToken = authResponse.AuthenticationResult?.AccessToken,
+                RefreshToken = authResponse.AuthenticationResult?.RefreshToken,
+                ExpiresIn = authResponse.AuthenticationResult?.ExpiresIn,
+                TokenType = authResponse.AuthenticationResult?.TokenType ?? "Bearer"
             };
         }
 

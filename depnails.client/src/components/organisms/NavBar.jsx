@@ -11,7 +11,10 @@ import Button from '@mui/material/Button';
 import Tooltip from '@mui/material/Tooltip';
 import MenuItem from '@mui/material/MenuItem';
 import AccountCircleIcon from '@mui/icons-material/AccountCircle';
-import { Link } from "react-router-dom";
+import { Link, useNavigate } from "react-router-dom";
+import { useAuth } from '../../context/AuthContext';
+import LoginModal from '../pages/Login'; // Import LoginModal
+import SignUpModal from '../pages/SignUp'; // Import SignUpModal
 
 // Defines the navigation links for the header
 const pages = [
@@ -21,15 +24,57 @@ const pages = [
     { name: 'Contact Us', path: '/contact-us' },
 ];
 // Defines the user account settings options
-const settings = [
-    { name: 'Log out', path: '/login' },
+const loggedInSettings = [
+    { name: 'Profile', action: 'profile' }, // Placeholder for profile action
+    { name: 'Log out', action: 'logout' },
+];
+
+const loggedOutSettings = [
+    { name: 'Login', path: '/login' },
+    { name: 'Sign Up', path: '/signup' },
 ];
 
 function NavBar() {
-    // State for controlling the mobile navigation menu's anchor element
+    const { isAuthenticated, logout } = useAuth();
+    const navigate = useNavigate();
     const [navMenuAnchor, setNavMenuAnchor] = useState(null);
-    // State for controlling the user settings menu's anchor element
     const [userMenuAnchor, setUserMenuAnchor] = useState(null);
+
+    const [loginModalOpen, setLoginModalOpen] = useState(false);
+    const [signUpModalOpen, setSignUpModalOpen] = useState(false);
+
+    const handleOpenLoginModal = () => {
+        setSignUpModalOpen(false); // Close sign-up modal if open
+        setLoginModalOpen(true);
+        setUserMenuAnchor(null); // Close user menu if open
+    };
+    const handleCloseLoginModal = () => setLoginModalOpen(false);
+
+    const handleOpenSignUpModal = () => {
+        setLoginModalOpen(false); // Close login modal if open
+        setSignUpModalOpen(true);
+        setUserMenuAnchor(null); // Close user menu if open
+    };
+    const handleCloseSignUpModal = () => setSignUpModalOpen(false);
+
+    const handleUserMenuAction = (actionOrPath) => {
+        setUserMenuAnchor(null);
+        if (actionOrPath === 'logout') {
+            logout();
+            navigate('/'); // Redirect to home after logout, or login: navigate('/login');
+        } else if (actionOrPath === 'profile') {
+            console.log("Profile action");
+            // navigate('/profile');
+        } else if (actionOrPath === '/login') {
+            handleOpenLoginModal();
+        } else if (actionOrPath === '/signup') {
+            handleOpenSignUpModal();
+        } else {
+            navigate(actionOrPath);
+        }
+    };
+
+    const currentSettings = isAuthenticated ? loggedInSettings : loggedOutSettings;
 
     return (
         <AppBar position="static">
@@ -40,7 +85,7 @@ function NavBar() {
                         variant="h6"
                         noWrap
                         component="a"
-                        href="#app-bar-with-responsive-menu"
+                        href="/"
                         sx={{
                             mr: 2,
                             display: { xs: 'none', md: 'flex' }, // Hidden on extra-small/small, visible on medium and up
@@ -100,7 +145,7 @@ function NavBar() {
                         variant="h5"
                         noWrap
                         component="a"
-                        href="#app-bar-with-responsive-menu"
+                        href="/"
                         sx={{
                             mr: 2,
                             display: { xs: 'flex', md: 'none' }, // Visible on xs/sm, hidden on md and up
@@ -138,7 +183,7 @@ function NavBar() {
                         </Tooltip>
                         <Menu
                             sx={{ mt: '45px' }}
-                            id="menu-appbar"
+                            id="menu-appbar-user"
                             anchorEl={userMenuAnchor}
                             anchorOrigin={{
                                 vertical: 'top',
@@ -149,23 +194,11 @@ function NavBar() {
                                 vertical: 'top',
                                 horizontal: 'right',
                             }}
-                            open={Boolean(userMenuAnchor)} // Controls visibility of the user menu
-                            onClose={() => setUserMenuAnchor(null)} // Closes the user menu
+                            open={Boolean(userMenuAnchor)}
+                            onClose={() => setUserMenuAnchor(null)}
                         >
-                            {/* Maps over the 'settings' array to create user menu items */}
-                            {settings.map((setting, index) => (
-                                <MenuItem
-                                    key={`${setting}-${index}`}
-                                    onClick={() => {
-                                        setUserMenuAnchor(null); // Closes menu on item click
-                                        if (setting.name === 'Log out') {
-                                            sessionStorage.clear(); // Clears session storage on logout
-                                            logout(); // Calls the logout function (ensure this is defined elsewhere)
-                                        }
-                                    }}
-                                    component={Link}
-                                    to={`${setting.path}`}
-                                >
+                            {currentSettings.map((setting) => (
+                                <MenuItem key={setting.name} onClick={() => handleUserMenuAction(setting.action || setting.path)}>
                                     <Typography textAlign="center">{setting.name}</Typography>
                                 </MenuItem>
                             ))}
@@ -173,7 +206,19 @@ function NavBar() {
                     </Box>
                 </Toolbar>
             </Container>
+            {/* Modals are now rendered here, outside of AppBar but within NavBar component scope */}
+            <LoginModal 
+                open={loginModalOpen} 
+                handleClose={handleCloseLoginModal} 
+                onSwitchToSignUp={handleOpenSignUpModal} 
+            />
+            <SignUpModal 
+                open={signUpModalOpen} 
+                handleClose={handleCloseSignUpModal} 
+                onSwitchToLogin={handleOpenLoginModal} 
+            />
         </AppBar>
     );
 }
+
 export default NavBar;
