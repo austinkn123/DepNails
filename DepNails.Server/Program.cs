@@ -3,6 +3,8 @@ using AppLibrary.Interfaces;
 using DepNails.Server.Services;
 using DepNails.Server.ServiceSetup;
 using AppLibrary.Models.Configuration; // Ensure this using statement is present
+using Microsoft.AspNetCore.Authentication.JwtBearer; // Add this using statement
+using Microsoft.IdentityModel.Tokens; // Add this using statement
 
 var builder = WebApplication.CreateBuilder(args);
 
@@ -30,6 +32,28 @@ builder.Services.AddSingleton(applicationSettings.Cognito);
 // Add AWS Cognito services
 builder.Services.AddAWSService<IAmazonCognitoIdentityProvider>();
 builder.Services.AddScoped<IAuthService, AuthService>();
+
+//// Configure JWT Bearer Authentication
+//builder.Services.AddAuthentication(options =>
+//{
+//    options.DefaultAuthenticateScheme = JwtBearerDefaults.AuthenticationScheme;
+//    options.DefaultChallengeScheme = JwtBearerDefaults.AuthenticationScheme;
+//})
+//.AddJwtBearer(options =>
+//{
+//    var cognitoSettings = applicationSettings.Cognito ?? throw new InvalidOperationException("Cognito settings are not configured.");
+//    options.Authority = cognitoSettings.Authority; // e.g., https://cognito-idp.us-east-1.amazonaws.com/YOUR_USER_POOL_ID
+//    options.TokenValidationParameters = new TokenValidationParameters
+//    {
+//        ValidateIssuerSigningKey = true,
+//        // Issuer signing key will be downloaded from Authority
+//        ValidateAudience = true,
+//        ValidAudience = cognitoSettings.AppClientId, // Your Cognito App Client ID
+//        ValidateIssuer = true,
+//        ValidIssuer = cognitoSettings.Authority, // Your Cognito User Pool URL
+//        ValidateLifetime = true
+//    };
+//});
 
 builder.Services.AddControllers();
 // Learn more about configuring OpenAPI at https://aka.ms/aspnet/openapi

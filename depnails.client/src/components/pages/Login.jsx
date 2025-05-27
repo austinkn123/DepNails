@@ -9,8 +9,8 @@ const Login = ({ open, handleClose, onSwitchToSignUp }) => {
 
     const formik = useFormik({
         initialValues: {
-            email: '', // Changed from username to email
-            password: '',
+            email: 'austinkn123@gmail.com', // Changed from username to email
+            password: 'P@ssw0rd',
         },
         validationSchema: Yup.object({
             email: Yup.string().email('Invalid email address').required('Email is required'), // Changed from username to email

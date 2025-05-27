@@ -3,10 +3,10 @@
 // but you can create it manually.
 const awsExports = {
     "aws_project_region": "us-east-2", // e.g., "us-east-1"
-    "aws_cognito_identity_pool_id": "YOUR_IDENTITY_POOL_ID", // Optional: if using Identity Pools
+    "aws_cognito_identity_pool_id": "us-east-2_7zJIj7idQ", // Optional: if using Identity Pools
     "aws_cognito_region": "us-east-2",
-    "aws_user_pools_id": "us-east-2_n0PUmJkxw", // e.g., "us-east-1_xxxxxxxxx"
-    "aws_user_pools_web_client_id": "2ajkl4l78ns6n8mbhk7dlsdr9a", // The App Client ID from Cognito
+    "aws_user_pools_id": "us-east-2_7zJIj7idQ", // e.g., "us-east-1_xxxxxxxxx"
+    "aws_user_pools_web_client_id": "4nngsvvkq55jaq9dfhtegh5amf", // The App Client ID from Cognito
     "oauth": {},
     "aws_cognito_username_attributes": ["EMAIL"], // Or other attributes you configured
     "aws_cognito_social_providers": [],

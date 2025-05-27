@@ -10,10 +10,11 @@ import TextFieldAtom from '../atoms/TextFieldAtom'; // Import the new component
 // Changed props: added open, handleClose, onSwitchToLogin
 const SignUp = ({ open, handleClose, onSwitchToLogin }) => {
     // Removed username state
-    const [phoneNumber, setPhoneNumber] = useState('');
-    const [email, setEmail] = useState('');
-    const [password, setPassword] = useState('');
-    const [confirmPassword, setConfirmPassword] = useState('');
+    const [name, setName] = useState('Ausitn Nguyen'); // Added name state
+    const [phoneNumber, setPhoneNumber] = useState("9136052823");
+    const [email, setEmail] = useState('austinkn123@gmail.com');
+    const [password, setPassword] = useState('P@ssw0rd');
+    const [confirmPassword, setConfirmPassword] = useState('P@ssw0rd');
     const [error, setError] = useState('');
     // Removed navigate initialization
 
@@ -35,6 +36,24 @@ const SignUp = ({ open, handleClose, onSwitchToLogin }) => {
         };
         setPasswordRequirements(requirements);
         return Object.values(requirements).every(Boolean); // Return true if all requirements are met
+    };
+
+    const formatPhoneNumber = (value) => {
+        // Remove all non-digit characters
+        const digits = value.replace(/\D/g, '');
+        // Add +1 if it's a 10-digit US number and doesn't already start with +
+        if (digits.length === 10 && !value.startsWith('+')) {
+            return `+1${digits}`;
+        }
+        // If it starts with + and has more than 10 digits (e.g. +1xxxxxxxxxx), it's likely already formatted
+        if (value.startsWith('+') && digits.length > 10) {
+            return `+${digits}`;
+        }
+        // Otherwise, return the digits prefixed with + if it's not already
+        if (!value.startsWith('+')) {
+            return `+${digits}`;
+        }
+        return value; // Fallback for other cases or already formatted numbers
     };
 
     const handlePasswordChange = (e) => {
@@ -61,8 +80,8 @@ const SignUp = ({ open, handleClose, onSwitchToLogin }) => {
             return;
         }
 
-        // Pass email and password to the mutation
-        mutation.mutate({ email, password }); 
+        // Pass email, password, name, and phoneNumber to the mutation
+        mutation.mutate({ email, password, name, phoneNumber });
     };
 
     return (
@@ -92,6 +111,18 @@ const SignUp = ({ open, handleClose, onSwitchToLogin }) => {
                 <Box component="form" onSubmit={handleSubmit} sx={{ mt: 3 }}>
                     {error && <Typography color="error" sx={{ mb: 2 }}>{error}</Typography>}
                     <TextFieldAtom
+                        label="Full Name"
+                        id="name"
+                        name="name"
+                        autoComplete="name"
+                        type="text"
+                        value={name}
+                        onChange={(e) => setName(e.target.value)}
+                        required
+                        fullWidth // Added for consistency
+                        margin="normal" // Added for consistency
+                    />
+                    <TextFieldAtom
                         label="Phone Number"
                         id="phoneNumber"
                         name="phoneNumber"
@@ -99,6 +130,7 @@ const SignUp = ({ open, handleClose, onSwitchToLogin }) => {
                         type="tel"
                         value={phoneNumber}
                         onChange={(e) => setPhoneNumber(e.target.value)}
+                        onBlur={(e) => setPhoneNumber(formatPhoneNumber(e.target.value))}
                         required
                     />
                     <TextFieldAtom

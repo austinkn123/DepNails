@@ -14,6 +14,7 @@ namespace DepNails.Server.Services
         private readonly CognitoUserPool _userPool;
         private readonly string _clientId;
         private readonly string _userPoolId;
+        private readonly string _clientSecret; // Add this line
 
         public AuthService(IAmazonCognitoIdentityProvider cognitoClient, ApplicationSettings appSettings)
         {
@@ -22,22 +23,40 @@ namespace DepNails.Server.Services
             var cognitoSettings = appSettings.Cognito ?? throw new ArgumentNullException(nameof(appSettings.Cognito));
             _userPoolId = cognitoSettings.UserPoolId ?? throw new ArgumentNullException(nameof(cognitoSettings.UserPoolId));
             _clientId = cognitoSettings.AppClientId ?? throw new ArgumentNullException(nameof(cognitoSettings.AppClientId));
-            _userPool = new CognitoUserPool(_userPoolId, _clientId, _cognitoClient);
+            _clientSecret = cognitoSettings.ClientSecret ?? throw new ArgumentNullException(nameof(cognitoSettings.ClientSecret), "Cognito ClientSecret must be configured if present in settings."); 
+            // Ensure _clientSecret is passed to CognitoUserPool
+            _userPool = new CognitoUserPool(_userPoolId, _clientId, _cognitoClient, _clientSecret);
         }
 
         public async Task<AuthResponse> SignUpAsync(AccountSignUpRequest request)
         {
             try
             {
+                var userAttributes = new List<AttributeType>
+                {
+                    new AttributeType { Name = "email", Value = request.Email },
+                    new AttributeType { Name = "name", Value = request.Name } // Added
+                };
+
+                // Format phone number to E.164 if provided
+                if (!string.IsNullOrWhiteSpace(request.PhoneNumber))
+                {
+                    string formattedPhoneNumber = request.PhoneNumber;
+                    if (!formattedPhoneNumber.StartsWith("+"))
+                    {
+                        // Basic assumption for US numbers, ideally, country code should be handled more robustly
+                        formattedPhoneNumber = "+1" + formattedPhoneNumber.Replace("-", "").Replace("(", "").Replace(")", "").Replace(" ", "");
+                    }
+                    userAttributes.Add(new AttributeType { Name = "phone_number", Value = formattedPhoneNumber });
+                }
+
                 var signUpRequest = new SignUpRequest
                 {
                     ClientId = _clientId,
                     Username = request.Email, // Changed from request.Username to request.Email
                     Password = request.Password,
-                    UserAttributes = new List<AttributeType>
-                {
-                    new AttributeType { Name = "email", Value = request.Email }
-                }
+                    UserAttributes = userAttributes,
+                    SecretHash = ComputeSecretHash(_clientId, _clientSecret, request.Email) // Add this line
                 };
 
                 await _cognitoClient.SignUpAsync(signUpRequest); // No need to capture response if not used
@@ -63,26 +82,53 @@ namespace DepNails.Server.Services
             
         }
 
+        // Add this method to compute the secret hash
+        private string ComputeSecretHash(string clientId, string clientSecret, string userName)
+        {
+            var keyByte = System.Text.Encoding.UTF8.GetBytes(clientSecret);
+            var messageByte = System.Text.Encoding.UTF8.GetBytes(userName + clientId);
+            using (var hmacsha256 = new System.Security.Cryptography.HMACSHA256(keyByte))
+            {
+                var hash = hmacsha256.ComputeHash(messageByte);
+                return Convert.ToBase64String(hash);
+            }
+        }
+
         public async Task<AuthResponse> LoginAsync(LoginRequest request)
         {
-            // Ensure request.Email is not null before using it.
-            var userName = request.Email ?? throw new ArgumentNullException(nameof(request.Email));
-            var user = new CognitoUser(userName, _clientId, _userPool, _cognitoClient); 
-            var authRequest = new InitiateSrpAuthRequest
+            var secretHash = ComputeSecretHash(_clientId, _clientSecret, request.Email);
+
+            var authRequest = new AdminInitiateAuthRequest
             {
-                Password = request.Password
+                UserPoolId = _userPoolId,
+                ClientId = _clientId,
+                AuthFlow = AuthFlowType.ADMIN_USER_PASSWORD_AUTH,
+                AuthParameters = new Dictionary<string, string>
+                {
+                    { "USERNAME", request.Email },
+                    { "PASSWORD", request.Password },
+                    { "SECRET_HASH", secretHash }
+                }
             };
 
-            AuthFlowResponse authResponse = await user.StartWithSrpAuthAsync(authRequest).ConfigureAwait(false);
-
-            return new AuthResponse
+            try
             {
-                IdToken = authResponse.AuthenticationResult?.IdToken,
-                AccessToken = authResponse.AuthenticationResult?.AccessToken,
-                RefreshToken = authResponse.AuthenticationResult?.RefreshToken,
-                ExpiresIn = authResponse.AuthenticationResult?.ExpiresIn,
-                TokenType = authResponse.AuthenticationResult?.TokenType ?? "Bearer"
-            };
+                var authResponse = await _cognitoClient.AdminInitiateAuthAsync(authRequest);
+                return new AuthResponse
+                {
+                    IdToken = authResponse.AuthenticationResult.IdToken,
+                    AccessToken = authResponse.AuthenticationResult.AccessToken,
+                    RefreshToken = authResponse.AuthenticationResult.RefreshToken,
+                    ExpiresIn = authResponse.AuthenticationResult.ExpiresIn,
+                    TokenType = authResponse.AuthenticationResult.TokenType ?? "Bearer"
+                };
+            }
+            catch (AmazonCognitoIdentityProviderException ex) when (ex.ErrorCode == "NotAuthorizedException")
+            {
+                Console.WriteLine($"Exception occurred: {ex.Message}");
+                Console.WriteLine($"Stack Trace: {ex.StackTrace}");
+                throw; // Re-throw the exception to inform caller of authentication failure
+            }
         }
 
         public async Task LogoutAsync(LogoutRequest request)
