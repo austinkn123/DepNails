@@ -1,35 +1,31 @@
 import { useMutation } from '@tanstack/react-query';
 import axiosInstance from '../utils/interceptor';
-import { useAuth } from '../src/context/AuthContext'; // Import useAuth
 
-export const loginUser = () => {
-    const { login } = useAuth(); // Get login from useAuth
-    return useMutation({
+export const loginUser = (onSuccessCallback) => {
+    const login = useMutation({
         mutationFn: async (loginData) => {
             const response = await axiosInstance({
-                url: '/Auth/login', 
+                url: '/Auth/login',
                 method: 'POST',
-                data: loginData, 
+                data: loginData,
             });
             return response.data;
         },
         onSuccess: (data) => {
-            // Assuming the response data includes a token, e.g., data.accessToken
-            if (data && data.accessToken) {
-                login(data.accessToken); // Use login from AuthContext
-                // You might want to store other user info or redirect here
-                console.log('Login successful, token stored.');
-            }
+            console.log('Login successful, token stored.');
+            if (onSuccessCallback) onSuccessCallback(data);
         },
         onError: (error) => {
             console.error('Login failed:', error);
         },
-    });
+    })
+
+    return login;
 };
 
-export const registerUser = () => {
-    const { login } = useAuth(); // Get login from useAuth for potential auto-login
-    return useMutation({
+export const registerUser = (onSuccessCallback) => {
+
+    const signUp = useMutation({
         mutationFn: async (signUpData) => {
             const response = await axiosInstance({
                 url: '/Auth/signup', // Assuming this is your signup endpoint
@@ -39,16 +35,13 @@ export const registerUser = () => {
             return response.data;
         },
         onSuccess: (data) => {
-            // Handle successful registration, e.g., storing tokens or user info
-            console.log('Registration successful:', data);
-            // Optionally, log the user in automatically after registration
-            if (data && data.accessToken) {
-                login(data.accessToken); // Use login from AuthContext
-            }
-            // You might want to automatically log the user in or redirect
+            console.log('Registration success:', data);
+            if (onSuccessCallback) onSuccessCallback(data);
         },
         onError: (error) => {
             console.error('Registration failed:', error);
         },
-    });
+    })
+
+    return signUp;
 };

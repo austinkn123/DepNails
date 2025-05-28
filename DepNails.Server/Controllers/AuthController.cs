@@ -21,6 +21,7 @@ namespace DepNails.Server.Controllers
         {
             try
             {
+                //return Ok();
                 var result = await _authService.SignUpAsync(request);
                 return Ok(result);
             }

@@ -1,214 +1,179 @@
-import React, { useState } from 'react';
-import { useMutation } from '@tanstack/react-query';
-// Removed useNavigate as direct page navigation will be handled differently
+import { Formik, Form } from 'formik';
+import * as Yup from 'yup';
 import { registerUser } from '../../../queries/Auth';
-import { Button, Container, Typography, Box, List, ListItem, ListItemText, Modal, Paper } from '@mui/material'; // Added Modal, Paper
-import CheckCircleIcon from '@mui/icons-material/CheckCircle';
-import CancelIcon from '@mui/icons-material/Cancel';
-import TextFieldAtom from '../atoms/TextFieldAtom'; // Import the new component
+import { Button, Container, Typography, Box, IconButton } from '@mui/material'; // Added IconButton
+import HomeIcon from '@mui/icons-material/Home'; // Added HomeIcon
+import TextFieldAtom from '../atoms/TextFieldAtom';
+import { MuiTelInput } from 'mui-tel-input';
+import { Link as RouterLink, useNavigate } from 'react-router-dom'; // Added useNavigate
 
-// Changed props: added open, handleClose, onSwitchToLogin
-const SignUp = ({ open, handleClose, onSwitchToLogin }) => {
-    // Removed username state
-    const [name, setName] = useState('Ausitn Nguyen'); // Added name state
-    const [phoneNumber, setPhoneNumber] = useState("9136052823");
-    const [email, setEmail] = useState('austinkn123@gmail.com');
-    const [password, setPassword] = useState('P@ssw0rd');
-    const [confirmPassword, setConfirmPassword] = useState('P@ssw0rd');
-    const [error, setError] = useState('');
-    // Removed navigate initialization
+const SignUpSchema = Yup.object().shape({
+    name: Yup.string().required('Required'),
+    phoneNumber: Yup.string()
+        .transform((value) => (typeof value === 'string' ? value.replace(/[\s()-]/g, '') : value))
+        .matches(/^\+1\d{10}$/, 'Phone number must be in +1XXXXXXXXXX format')
+        .required('Required'),
+    email: Yup.string().email('Invalid email').required('Required'),
+    password: Yup.string()
+        .min(8, 'Password must be at least 8 characters')
+        .matches(/[a-z]/, 'Password must contain a lowercase letter')
+        .matches(/[A-Z]/, 'Password must contain an uppercase letter')
+        .matches(/[0-9]/, 'Password must contain a number')
+        .matches(/[@$!%*?&]/, 'Password must contain a symbol')
+        .required('Required'),
+    confirmPassword: Yup.string()
+        .oneOf([Yup.ref('password'), null], 'Passwords must match')
+        .required('Required'),
+});
 
-    const [passwordRequirements, setPasswordRequirements] = useState({
-        length: false,
-        number: false,
-        lowercase: false,
-        uppercase: false,
-        symbol: false,
-    });
-
-    const validatePassword = (currentPassword) => {
-        const requirements = {
-            length: currentPassword.length >= 8,
-            number: /\d/.test(currentPassword),
-            lowercase: /[a-z]/.test(currentPassword),
-            uppercase: /[A-Z]/.test(currentPassword),
-            symbol: /[@$!%*?&]/.test(currentPassword),
-        };
-        setPasswordRequirements(requirements);
-        return Object.values(requirements).every(Boolean); // Return true if all requirements are met
-    };
-
-    const formatPhoneNumber = (value) => {
-        // Remove all non-digit characters
-        const digits = value.replace(/\D/g, '');
-        // Add +1 if it's a 10-digit US number and doesn't already start with +
-        if (digits.length === 10 && !value.startsWith('+')) {
-            return `+1${digits}`;
-        }
-        // If it starts with + and has more than 10 digits (e.g. +1xxxxxxxxxx), it's likely already formatted
-        if (value.startsWith('+') && digits.length > 10) {
-            return `+${digits}`;
-        }
-        // Otherwise, return the digits prefixed with + if it's not already
-        if (!value.startsWith('+')) {
-            return `+${digits}`;
-        }
-        return value; // Fallback for other cases or already formatted numbers
-    };
-
-    const handlePasswordChange = (e) => {
-        const newPassword = e.target.value;
-        setPassword(newPassword);
-        validatePassword(newPassword);
-    };
-
-    // Correctly call registerUser hook to get the mutation object
-    const mutation = registerUser(); 
-
-    const handleSubmit = (event) => {
-        event.preventDefault();
-        setError('');
-
-        if (password !== confirmPassword) {
-            setError('Passwords do not match.');
-            return;
-        }
-
-        // Use the return value of validatePassword directly
-        if (!validatePassword(password)) {
-            setError('Password does not meet requirements.');
-            return;
-        }
-
-        // Pass email, password, name, and phoneNumber to the mutation
-        mutation.mutate({ email, password, name, phoneNumber });
-    };
+const SignUp = () => {
+    const navigate = useNavigate(); // Added useNavigate hook
+    const { mutate: signUp, isPending, error: mutationError } = registerUser(
+        () => navigate('/confirm-email') // Navigate to ConfirmEmail page
+    );
 
     return (
-        <Modal
-            open={open}
-            onClose={handleClose}
-            aria-labelledby="signup-modal-title"
-            aria-describedby="signup-modal-description"
-        >
-            <Paper sx={{
-                position: 'absolute',
-                top: '50%',
-                left: '50%',
-                transform: 'translate(-50%, -50%)',
-                width: 500, // Increased width from 400 to 500
-                maxWidth: '90%', // Added maxWidth to prevent overflow on smaller screens
-                bgcolor: 'background.paper',
-                boxShadow: 24,
-                p: 4,
-                borderRadius: 2,
-                maxHeight: '90vh', // Added for scrollability
-                overflowY: 'auto',  // Added for scrollability
+        <Container component="main" maxWidth="xs">
+            <Box sx={{
+                marginTop: 8,
+                display: 'flex',
+                flexDirection: 'column',
+                alignItems: 'center',
+                position: 'relative', // Added for positioning the icon
             }}>
-                <Typography id="signup-modal-title" component="h1" variant="h5" align="center">
+                <IconButton 
+                    component={RouterLink} 
+                    to="/" 
+                    sx={{ position: 'absolute', top: 8, left: 8 }} // Positioned top-left
+                    aria-label="go to home page"
+                >
+                    <HomeIcon />
+                </IconButton>
+                <Typography component="h1" variant="h5">
                     Sign Up
                 </Typography>
-                <Box component="form" onSubmit={handleSubmit} sx={{ mt: 3 }}>
-                    {error && <Typography color="error" sx={{ mb: 2 }}>{error}</Typography>}
-                    <TextFieldAtom
-                        label="Full Name"
-                        id="name"
-                        name="name"
-                        autoComplete="name"
-                        type="text"
-                        value={name}
-                        onChange={(e) => setName(e.target.value)}
-                        required
-                        fullWidth // Added for consistency
-                        margin="normal" // Added for consistency
-                    />
-                    <TextFieldAtom
-                        label="Phone Number"
-                        id="phoneNumber"
-                        name="phoneNumber"
-                        autoComplete="tel"
-                        type="tel"
-                        value={phoneNumber}
-                        onChange={(e) => setPhoneNumber(e.target.value)}
-                        onBlur={(e) => setPhoneNumber(formatPhoneNumber(e.target.value))}
-                        required
-                    />
-                    <TextFieldAtom
-                        label="Email"
-                        type="email"
-                        value={email}
-                        onChange={(e) => setEmail(e.target.value)}
-                        fullWidth
-                        margin="normal"
-                        required
-                    />
-                    <TextFieldAtom
-                        label="Password"
-                        name="password"
-                        type="password"
-                        id="password"
-                        autoComplete="new-password"
-                        value={password}
-                        onChange={handlePasswordChange}
-                        required
-                    />
-                    <TextFieldAtom
-                        label="Confirm Password"
-                        name="confirmPassword"
-                        type="password"
-                        id="confirmPassword"
-                        autoComplete="new-password"
-                        value={confirmPassword}
-                        onChange={(e) => setConfirmPassword(e.target.value)}
-                        required
-                    />
-                    {password.length > 0 && (
-                        <Box sx={{ mt: 2, mb: 2, fontSize: '0.9em' }}>
-                            <Typography variant="subtitle2">Password requirements:</Typography>
-                            <List dense>
-                                <ListItem sx={{ pl: 0 }}>
-                                    {passwordRequirements.length ? <CheckCircleIcon color="success" sx={{ mr: 1 }} /> : <CancelIcon color="error" sx={{ mr: 1 }} />}
-                                    <ListItemText primary="At least 8 characters" />
-                                </ListItem>
-                                <ListItem sx={{ pl: 0 }}>
-                                    {passwordRequirements.number ? <CheckCircleIcon color="success" sx={{ mr: 1 }} /> : <CancelIcon color="error" sx={{ mr: 1 }} />}
-                                    <ListItemText primary="Must contain a number" />
-                                </ListItem>
-                                <ListItem sx={{ pl: 0 }}>
-                                    {passwordRequirements.lowercase ? <CheckCircleIcon color="success" sx={{ mr: 1 }} /> : <CancelIcon color="error" sx={{ mr: 1 }} />}
-                                    <ListItemText primary="Must contain a lowercase letter" />
-                                </ListItem>
-                                <ListItem sx={{ pl: 0 }}>
-                                    {passwordRequirements.uppercase ? <CheckCircleIcon color="success" sx={{ mr: 1 }} /> : <CancelIcon color="error" sx={{ mr: 1 }} />}
-                                    <ListItemText primary="Must contain an uppercase letter" />
-                                </ListItem>
-                                <ListItem sx={{ pl: 0 }}>
-                                    {passwordRequirements.symbol ? <CheckCircleIcon color="success" sx={{ mr: 1 }} /> : <CancelIcon color="error" sx={{ mr: 1 }} />}
-                                    <ListItemText primary="Must contain a symbol (e.g., @$!%*?&)" />
-                                </ListItem>
-                            </List>
-                        </Box>
-                    )}
-                    <Button
-                        type="submit"
-                        fullWidth
-                        variant="contained"
-                        sx={{ mt: 3, mb: 2 }}
-                        disabled={mutation.isPending} // Changed from isLoading to isPending
-                    >
-                        {mutation.isPending ? 'Signing Up...' : 'Sign Up'} {/* Changed from isLoading to isPending */}
-                    </Button>
-                    <Box sx={{ mt: 2, textAlign: 'center' }}>
-                        <Typography variant="body2">
-                            Already have an account?{' '}
-                            <Button variant="text" onClick={() => { handleClose(); onSwitchToLogin(); }} sx={{ textTransform: 'none' }}>
-                                Login
+                <Formik
+                    initialValues={{
+                        name: 'Austin Nguyen', 
+                        phoneNumber: '+19136052823', 
+                        email: 'austinkn123@gmail.com', 
+                        password: 'P@ssw0rd', 
+                        confirmPassword: 'P@ssw0rd', 
+                    }}
+                    validationSchema={SignUpSchema}
+                    onSubmit={async (values, { setSubmitting, setErrors }) => {
+                        try {
+                            await signUp(values);
+                            // Navigation is handled by mutation's onSuccess
+                        } catch (err) {
+                            // Error is handled by the mutation's error state (mutationError)
+                            // or you can set form-level errors if needed:
+                            // setErrors({ submit: err.message || 'An error occurred during signup.' });
+                        }
+                        setSubmitting(false);
+                    }}
+                >
+                    {({ errors, touched, handleChange, handleBlur, values, setFieldValue, isSubmitting }) => (
+                        <Form>
+                            {/* Display mutation error if present */}
+                            {mutationError && (
+                                <Typography color="error" sx={{ mb: 2 }}>
+                                    {mutationError.message || 'An error occurred during signup.'}
+                                </Typography>
+                            )}
+                            <TextFieldAtom
+                                label="Full Name"
+                                id="name"
+                                name="name"
+                                autoComplete="name"
+                                type="text"
+                                value={values.name}
+                                onChange={handleChange}
+                                onBlur={handleBlur}
+                                error={touched.name && Boolean(errors.name)}
+                                helperText={touched.name && errors.name}
+                                required
+                                fullWidth
+                                margin="normal"
+                            />
+                            <MuiTelInput
+                                label="Phone Number"
+                                id="phoneNumber"
+                                name="phoneNumber"
+                                value={values.phoneNumber}
+                                onChange={(newValue) => setFieldValue('phoneNumber', newValue)}
+                                onBlur={handleBlur}
+                                error={touched.phoneNumber && Boolean(errors.phoneNumber)}
+                                helperText={touched.phoneNumber && errors.phoneNumber}
+                                required
+                                fullWidth
+                                margin="normal"
+                                defaultCountry="US"
+                            />
+                            <TextFieldAtom
+                                label="Email"
+                                id="email"
+                                name="email"
+                                type="email"
+                                value={values.email}
+                                onChange={handleChange}
+                                onBlur={handleBlur}
+                                error={touched.email && Boolean(errors.email)}
+                                helperText={touched.email && errors.email}
+                                fullWidth
+                                margin="normal"
+                                required
+                            />
+                            <TextFieldAtom
+                                label="Password"
+                                name="password"
+                                type="password"
+                                id="password"
+                                value={values.password}
+                                onChange={handleChange}
+                                onBlur={handleBlur}
+                                error={touched.password && Boolean(errors.password)}
+                                helperText={touched.password && errors.password}
+                                required
+                                fullWidth
+                                margin="normal"
+                            />
+                            <TextFieldAtom
+                                label="Confirm Password"
+                                name="confirmPassword"
+                                type="password"
+                                id="confirmPassword"
+                                value={values.confirmPassword}
+                                onChange={handleChange}
+                                onBlur={handleBlur}
+                                error={touched.confirmPassword && Boolean(errors.confirmPassword)}
+                                helperText={touched.confirmPassword && errors.confirmPassword}
+                                required
+                                fullWidth
+                                margin="normal"
+                            />
+                            <Button
+                                type="submit"
+                                fullWidth
+                                variant="contained"
+                                sx={{ mt: 3, mb: 2 }}
+                                disabled={isPending || isSubmitting}
+                            >
+                                {isPending || isSubmitting ? 'Signing Up...' : 'Sign Up'}
                             </Button>
-                        </Typography>
-                    </Box>
-                </Box>
-            </Paper>
-        </Modal>
+                            <Box sx={{ mt: 2, textAlign: 'center' }}>
+                                <Typography variant="body2">
+                                    Already have an account?{' '}
+                                    <Button component={RouterLink} to="/login" variant="text" sx={{ textTransform: 'none' }}>
+                                        Login
+                                    </Button>
+                                </Typography>
+                            </Box>
+                        </Form>
+                    )}
+                </Formik>
+            </Box>
+        </Container>
     );
 };
 

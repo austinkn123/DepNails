@@ -5,6 +5,7 @@ using Amazon.Extensions.CognitoAuthentication;
 using AppLibrary.Interfaces;
 using AppLibrary.Models.Account;
 using AppLibrary.Models.Configuration;
+using System.Reflection;
 
 namespace DepNails.Server.Services
 {
@@ -14,17 +15,15 @@ namespace DepNails.Server.Services
         private readonly CognitoUserPool _userPool;
         private readonly string _clientId;
         private readonly string _userPoolId;
-        private readonly string _clientSecret; // Add this line
+        private readonly string _clientSecret;
 
         public AuthService(IAmazonCognitoIdentityProvider cognitoClient, ApplicationSettings appSettings)
         {
             _cognitoClient = cognitoClient;
-            // Access Cognito settings directly from ApplicationSettings
-            var cognitoSettings = appSettings.Cognito ?? throw new ArgumentNullException(nameof(appSettings.Cognito));
-            _userPoolId = cognitoSettings.UserPoolId ?? throw new ArgumentNullException(nameof(cognitoSettings.UserPoolId));
-            _clientId = cognitoSettings.AppClientId ?? throw new ArgumentNullException(nameof(cognitoSettings.AppClientId));
-            _clientSecret = cognitoSettings.ClientSecret ?? throw new ArgumentNullException(nameof(cognitoSettings.ClientSecret), "Cognito ClientSecret must be configured if present in settings."); 
-            // Ensure _clientSecret is passed to CognitoUserPool
+            var cognitoSettings = appSettings.Cognito;
+            _userPoolId = cognitoSettings.UserPoolId;
+            _clientId = cognitoSettings.AppClientId;
+            _clientSecret = cognitoSettings.ClientSecret; 
             _userPool = new CognitoUserPool(_userPoolId, _clientId, _cognitoClient, _clientSecret);
         }
 
@@ -35,20 +34,9 @@ namespace DepNails.Server.Services
                 var userAttributes = new List<AttributeType>
                 {
                     new AttributeType { Name = "email", Value = request.Email },
-                    new AttributeType { Name = "name", Value = request.Name } // Added
+                    new AttributeType { Name = "name", Value = request.Name },
+                    new AttributeType { Name = "phone_number", Value = request.PhoneNumber }
                 };
-
-                // Format phone number to E.164 if provided
-                if (!string.IsNullOrWhiteSpace(request.PhoneNumber))
-                {
-                    string formattedPhoneNumber = request.PhoneNumber;
-                    if (!formattedPhoneNumber.StartsWith("+"))
-                    {
-                        // Basic assumption for US numbers, ideally, country code should be handled more robustly
-                        formattedPhoneNumber = "+1" + formattedPhoneNumber.Replace("-", "").Replace("(", "").Replace(")", "").Replace(" ", "");
-                    }
-                    userAttributes.Add(new AttributeType { Name = "phone_number", Value = formattedPhoneNumber });
-                }
 
                 var signUpRequest = new SignUpRequest
                 {
@@ -60,6 +48,14 @@ namespace DepNails.Server.Services
                 };
 
                 await _cognitoClient.SignUpAsync(signUpRequest); // No need to capture response if not used
+
+                ////TEMP, NEED TO SET UP CONFIRM EMAIL
+                //var confirmRequest = new AdminConfirmSignUpRequest
+                //{
+                //    UserPoolId = _userPool.PoolID,
+                //    Username = request.Email
+                //};
+                //await _cognitoClient.AdminConfirmSignUpAsync(confirmRequest);
 
                 // Return a meaningful AuthResponse, adjust as necessary for your application
                 // This is a placeholder response. Cognito typically requires user confirmation first.

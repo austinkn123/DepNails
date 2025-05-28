@@ -13,19 +13,16 @@ import MenuItem from '@mui/material/MenuItem';
 import AccountCircleIcon from '@mui/icons-material/AccountCircle';
 import { Link, useNavigate } from "react-router-dom";
 import { useAuth } from '../../context/AuthContext';
-import LoginModal from '../pages/Login'; // Import LoginModal
-import SignUpModal from '../pages/SignUp'; // Import SignUpModal
 
-// Defines the navigation links for the header
 const pages = [
     { name: 'Home', path: '' },
     { name: 'Book', path: '/appointment' },
     { name: 'Services', path: '/services' },
     { name: 'Contact Us', path: '/contact-us' },
 ];
-// Defines the user account settings options
+
 const loggedInSettings = [
-    { name: 'Profile', action: 'profile' }, // Placeholder for profile action
+    { name: 'Profile', action: 'profile' }, 
     { name: 'Log out', action: 'logout' },
 ];
 
@@ -40,23 +37,6 @@ function NavBar() {
     const [navMenuAnchor, setNavMenuAnchor] = useState(null);
     const [userMenuAnchor, setUserMenuAnchor] = useState(null);
 
-    const [loginModalOpen, setLoginModalOpen] = useState(false);
-    const [signUpModalOpen, setSignUpModalOpen] = useState(false);
-
-    const handleOpenLoginModal = () => {
-        setSignUpModalOpen(false); // Close sign-up modal if open
-        setLoginModalOpen(true);
-        setUserMenuAnchor(null); // Close user menu if open
-    };
-    const handleCloseLoginModal = () => setLoginModalOpen(false);
-
-    const handleOpenSignUpModal = () => {
-        setLoginModalOpen(false); // Close login modal if open
-        setSignUpModalOpen(true);
-        setUserMenuAnchor(null); // Close user menu if open
-    };
-    const handleCloseSignUpModal = () => setSignUpModalOpen(false);
-
     const handleUserMenuAction = (actionOrPath) => {
         setUserMenuAnchor(null);
         if (actionOrPath === 'logout') {
@@ -65,10 +45,6 @@ function NavBar() {
         } else if (actionOrPath === 'profile') {
             console.log("Profile action");
             // navigate('/profile');
-        } else if (actionOrPath === '/login') {
-            handleOpenLoginModal();
-        } else if (actionOrPath === '/signup') {
-            handleOpenSignUpModal();
         } else {
             navigate(actionOrPath);
         }
@@ -206,17 +182,6 @@ function NavBar() {
                     </Box>
                 </Toolbar>
             </Container>
-            {/* Modals are now rendered here, outside of AppBar but within NavBar component scope */}
-            <LoginModal 
-                open={loginModalOpen} 
-                handleClose={handleCloseLoginModal} 
-                onSwitchToSignUp={handleOpenSignUpModal} 
-            />
-            <SignUpModal 
-                open={signUpModalOpen} 
-                handleClose={handleCloseSignUpModal} 
-                onSwitchToLogin={handleOpenLoginModal} 
-            />
         </AppBar>
     );
 }

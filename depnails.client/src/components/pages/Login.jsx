@@ -1,16 +1,26 @@
-import { Typography, Button, Box, Modal, Paper } from '@mui/material'; // Added Modal, Paper
+import { Typography, Button, Box, Container, IconButton } from '@mui/material'; // Added IconButton
+import HomeIcon from '@mui/icons-material/Home'; // Added HomeIcon
 import { useFormik } from 'formik';
 import * as Yup from 'yup';
 import { loginUser } from '../../../queries/Auth';
-import TextFieldAtom from '../atoms/TextFieldAtom'; // Import TextFieldAtom
+import TextFieldAtom from '../atoms/TextFieldAtom';
+import { Link as RouterLink, useNavigate } from 'react-router-dom'; // Added useNavigate
+import { useAuth } from '../../context/AuthContext'; // Added useAuth
 
-const Login = ({ open, handleClose, onSwitchToSignUp }) => {
-    const loginMutation = loginUser();
+const Login = () => {
+    const navigate = useNavigate(); // Added useNavigate hook
+    const { login: contextLogin } = useAuth(); // Renamed to avoid conflict
+    const loginMutation = loginUser(
+        (data) => { // Add onSuccess callback
+            contextLogin(data.token, data.user); // Call context login
+            navigate('/'); // Navigate to home
+        }
+    );
 
     const formik = useFormik({
         initialValues: {
-            email: 'austinkn123@gmail.com', // Changed from username to email
-            password: 'P@ssw0rd',
+            email: '', // Clear initial values
+            password: '', // Clear initial values
         },
         validationSchema: Yup.object({
             email: Yup.string().email('Invalid email address').required('Email is required'), // Changed from username to email
@@ -19,7 +29,7 @@ const Login = ({ open, handleClose, onSwitchToSignUp }) => {
         onSubmit: async (values) => {
             try {
                 await loginMutation.mutateAsync(values);
-                handleClose(); // Close modal on successful login
+                // Navigation and context update is handled by mutation's onSuccess
             } catch (error) {
                 // Error is handled in the mutation's onError callback
             }
@@ -27,24 +37,23 @@ const Login = ({ open, handleClose, onSwitchToSignUp }) => {
     });
 
     return (
-        <Modal
-            open={open}
-            onClose={handleClose}
-            aria-labelledby="login-modal-title"
-            aria-describedby="login-modal-description"
-        >
-            <Paper sx={{
-                position: 'absolute',
-                top: '50%',
-                left: '50%',
-                transform: 'translate(-50%, -50%)',
-                width: 400,
-                bgcolor: 'background.paper',
-                boxShadow: 24,
-                p: 4,
-                borderRadius: 2,
+        <Container component="main" maxWidth="xs"> {/* Changed from Modal to Container */}
+            <Box sx={{ // Changed from Paper sx
+                marginTop: 8,
+                display: 'flex',
+                flexDirection: 'column',
+                alignItems: 'center',
+                position: 'relative', // Added for positioning the icon
             }}>
-                <Typography id="login-modal-title" variant="h6" component="h2" gutterBottom align="center">
+                <IconButton 
+                    component={RouterLink} 
+                    to="/" 
+                    sx={{ position: 'absolute', top: 8, left: 8 }} // Positioned top-left
+                    aria-label="go to home page"
+                >
+                    <HomeIcon />
+                </IconButton>
+                <Typography component="h1" variant="h5"> {/* Removed id, changed variant */}
                     Login
                 </Typography>
                 <form onSubmit={formik.handleSubmit}>
@@ -92,14 +101,14 @@ const Login = ({ open, handleClose, onSwitchToSignUp }) => {
                 <Box sx={{ mt: 2, textAlign: 'center' }}>
                     <Typography variant="body2">
                         Don&apos;t have an account?{' '}
-                        {/* Changed to call onSwitchToSignUp prop */}
-                        <Button variant="text" onClick={() => { handleClose(); onSwitchToSignUp(); }} sx={{ textTransform: 'none' }}>
+                        {/* Changed Button to RouterLink */}
+                        <Button component={RouterLink} to="/signup" variant="text" sx={{ textTransform: 'none' }}>
                             Create an account
                         </Button>
                     </Typography>
                 </Box>
-            </Paper>
-        </Modal>
+            </Box> {/* Closed Box */} 
+        </Container> // Closed Container
     );
 }
 
