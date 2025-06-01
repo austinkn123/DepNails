@@ -70,10 +70,9 @@ namespace DepNails.Server.Services
             }
             catch (Exception ex)
             {
-                // Log the exception here  
-                Console.WriteLine($"Exception occurred: {ex.Message}");
-                Console.WriteLine($"Stack Trace: {ex.StackTrace}");
-                throw;
+                // Consider logging the exception details for better debugging
+                // For example: _logger.LogError(ex, "Error during sign up for {Email}", request.Email);
+                throw new Exception($"An error occurred during sign up: {ex.Message}", ex); // Rethrow with more context or a custom exception
             }
             
         }
@@ -92,23 +91,23 @@ namespace DepNails.Server.Services
 
         public async Task<AuthResponse> LoginAsync(LoginRequest request)
         {
-            var secretHash = ComputeSecretHash(_clientId, _clientSecret, request.Email);
 
-            var authRequest = new AdminInitiateAuthRequest
+            try
             {
-                UserPoolId = _userPoolId,
-                ClientId = _clientId,
-                AuthFlow = AuthFlowType.ADMIN_USER_PASSWORD_AUTH,
-                AuthParameters = new Dictionary<string, string>
+                var secretHash = ComputeSecretHash(_clientId, _clientSecret, request.Email);
+
+                var authRequest = new AdminInitiateAuthRequest
+                {
+                    UserPoolId = _userPoolId,
+                    ClientId = _clientId,
+                    AuthFlow = AuthFlowType.ADMIN_USER_PASSWORD_AUTH,
+                    AuthParameters = new Dictionary<string, string>
                 {
                     { "USERNAME", request.Email },
                     { "PASSWORD", request.Password },
                     { "SECRET_HASH", secretHash }
                 }
-            };
-
-            try
-            {
+                };
                 var authResponse = await _cognitoClient.AdminInitiateAuthAsync(authRequest);
                 return new AuthResponse
                 {
@@ -121,20 +120,111 @@ namespace DepNails.Server.Services
             }
             catch (AmazonCognitoIdentityProviderException ex) when (ex.ErrorCode == "NotAuthorizedException")
             {
-                Console.WriteLine($"Exception occurred: {ex.Message}");
-                Console.WriteLine($"Stack Trace: {ex.StackTrace}");
-                throw; // Re-throw the exception to inform caller of authentication failure
+                // Handle incorrect username or password specifically
+                throw new Exception("Incorrect username or password.", ex);
+            }
+            catch (Exception ex)
+            {
+                // Log other exceptions
+                throw new Exception($"An error occurred during login: {ex.Message}", ex);
             }
         }
 
         public async Task LogoutAsync(LogoutRequest request)
         {
-            var globalSignOutRequest = new GlobalSignOutRequest
+            try
             {
-                AccessToken = request.AccessToken
-            };
-            await _cognitoClient.GlobalSignOutAsync(globalSignOutRequest);
+                var globalSignOutRequest = new GlobalSignOutRequest
+                {
+                    AccessToken = request.AccessToken
+                };
+                await _cognitoClient.GlobalSignOutAsync(globalSignOutRequest);
+            }
+            catch (Exception ex)
+            {
+                // Log the exception
+                throw new Exception($"An error occurred during logout: {ex.Message}", ex);
+            }
+
         }
 
+        public async Task<AuthResponse> ConfirmEmailAsync(ConfirmEmailRequest request)
+        {
+            var secretHash = ComputeSecretHash(_clientId, _clientSecret, request.Email);
+
+            var confirmSignUpRequest = new ConfirmSignUpRequest
+            {
+                ClientId = _clientId,
+                SecretHash = secretHash, // Required if the app client has a secret
+                Username = request.Email,
+                ConfirmationCode = request.ConfirmationCode
+            };
+
+            try
+            {
+                await _cognitoClient.ConfirmSignUpAsync(confirmSignUpRequest);
+
+                // Attempt to automatically log in the user by generating tokens
+                // NOTE: ADMIN_NO_SRP_AUTH typically requires USERNAME and PASSWORD.
+                // Using it without PASSWORD might only work in specific Cognito configurations
+                // or custom flows. A PostConfirmation Lambda trigger is the more common
+                // way to achieve token generation immediately after confirmation.
+                // This attempt might fail in a standard Cognito setup.
+                var adminInitiateAuthRequest = new AdminInitiateAuthRequest
+                {
+                    UserPoolId = _userPoolId,
+                    ClientId = _clientId,
+                    AuthFlow = AuthFlowType.ADMIN_NO_SRP_AUTH,
+                    AuthParameters = new Dictionary<string, string>
+                    {
+                        { "USERNAME", request.Email },
+                        { "PASSWORD", request.Password }, 
+                        { "SECRET_HASH", secretHash }
+                    }
+                };
+
+                try
+                {
+                    var cognitoAuthResponse = await _cognitoClient.AdminInitiateAuthAsync(adminInitiateAuthRequest);
+                    // Successfully authenticated and received tokens
+                    return new AuthResponse
+                    {
+                        IdToken = cognitoAuthResponse.AuthenticationResult.IdToken,
+                        AccessToken = cognitoAuthResponse.AuthenticationResult.AccessToken,
+                        RefreshToken = cognitoAuthResponse.AuthenticationResult.RefreshToken,
+                        ExpiresIn = cognitoAuthResponse.AuthenticationResult.ExpiresIn,
+                        TokenType = cognitoAuthResponse.AuthenticationResult.TokenType ?? "Bearer"
+                    };
+                }
+                catch (NotAuthorizedException ex)
+                {
+                    // This exception is likely if ADMIN_NO_SRP_AUTH requires a password or other parameters are missing/incorrect.
+                    // This means automatic login failed.
+                    throw new Exception($"Email confirmed, but automatic login failed. User may need to log in manually. Cognito error: {ex.Message}", ex);
+                }
+                catch (UserNotFoundException ex)
+                {
+                     throw new Exception($"Email confirmed, but user not found for automatic login. Cognito error: {ex.Message}", ex);
+                }
+                // Catch other relevant Cognito exceptions as needed
+            }
+            catch (ExpiredCodeException ex)
+            {
+                throw new Exception($"Email confirmation failed: The confirmation code has expired. {ex.Message}", ex);
+            }
+            catch (CodeMismatchException ex)
+            {
+                throw new Exception($"Email confirmation failed: Invalid confirmation code. {ex.Message}", ex);
+            }
+            catch (TooManyRequestsException ex)
+            {
+                throw new Exception($"Too many requests for email confirmation. Please try again later. {ex.Message}", ex);
+            }
+            catch (Exception ex) // General catch for ConfirmSignUpAsync or other unexpected errors
+            {
+                // Log the exception
+                throw new Exception($"An error occurred during email confirmation or token generation: {ex.Message}", ex);
+            }
+        }
     }
 }

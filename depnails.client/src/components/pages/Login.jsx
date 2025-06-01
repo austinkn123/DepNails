@@ -1,26 +1,27 @@
-import { Typography, Button, Box, Container, IconButton } from '@mui/material'; // Added IconButton
-import HomeIcon from '@mui/icons-material/Home'; // Added HomeIcon
+import { Typography, Button, Box, Container, IconButton } from '@mui/material';
+import HomeIcon from '@mui/icons-material/Home'; 
 import { useFormik } from 'formik';
 import * as Yup from 'yup';
 import { loginUser } from '../../../queries/Auth';
 import TextFieldAtom from '../atoms/TextFieldAtom';
-import { Link as RouterLink, useNavigate } from 'react-router-dom'; // Added useNavigate
-import { useAuth } from '../../context/AuthContext'; // Added useAuth
+import { Link as RouterLink, useNavigate } from 'react-router-dom'; 
+import { useAuth } from '../../context/AuthContext'; 
 
 const Login = () => {
-    const navigate = useNavigate(); // Added useNavigate hook
+    const navigate = useNavigate(); 
     const { login: contextLogin } = useAuth(); // Renamed to avoid conflict
     const loginMutation = loginUser(
-        (data) => { // Add onSuccess callback
-            contextLogin(data.token, data.user); // Call context login
-            navigate('/'); // Navigate to home
+        (data) => { 
+            console.log('Login successful:', data);
+            contextLogin(data.accessToken); // Call context login
+            navigate('/'); 
         }
     );
 
     const formik = useFormik({
         initialValues: {
-            email: '', // Clear initial values
-            password: '', // Clear initial values
+            email: 'p0rkKch0p123@gmail.com', // Clear initial values
+            password: 'P@ssw0rd', // Clear initial values
         },
         validationSchema: Yup.object({
             email: Yup.string().email('Invalid email address').required('Email is required'), // Changed from username to email
@@ -29,7 +30,6 @@ const Login = () => {
         onSubmit: async (values) => {
             try {
                 await loginMutation.mutateAsync(values);
-                // Navigation and context update is handled by mutation's onSuccess
             } catch (error) {
                 // Error is handled in the mutation's onError callback
             }
@@ -37,8 +37,8 @@ const Login = () => {
     });
 
     return (
-        <Container component="main" maxWidth="xs"> {/* Changed from Modal to Container */}
-            <Box sx={{ // Changed from Paper sx
+        <Container component="main" maxWidth="xs"> 
+            <Box sx={{
                 marginTop: 8,
                 display: 'flex',
                 flexDirection: 'column',

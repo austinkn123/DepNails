@@ -61,5 +61,23 @@ namespace DepNails.Server.Controllers
                 return BadRequest(new { message = ex.Message });
             }
         }
+
+        [HttpPost("confirm-email")]
+        public async Task<IActionResult> ConfirmEmail(ConfirmEmailRequest request)
+        {
+            try
+            {
+                var authResponse = await _authService.ConfirmEmailAsync(request);
+                // If ConfirmEmailAsync successfully returns an AuthResponse (with tokens),
+                // the user is effectively logged in.
+                return Ok(authResponse);
+            }
+            catch (Exception ex)
+            {
+                // Log the exception details for server-side diagnostics
+                // For example: _logger.LogError(ex, "Error during email confirmation for {Email}", request.Email);
+                return BadRequest(new { message = ex.Message });
+            }
+        }
     }
 }

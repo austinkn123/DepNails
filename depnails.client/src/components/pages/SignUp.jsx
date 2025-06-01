@@ -27,9 +27,14 @@ const SignUpSchema = Yup.object().shape({
 });
 
 const SignUp = () => {
-    const navigate = useNavigate(); // Added useNavigate hook
+    const navigate = useNavigate();
     const { mutate: signUp, isPending, error: mutationError } = registerUser(
-        () => navigate('/confirm-email') // Navigate to ConfirmEmail page
+        (data, variables) => { // Modified to get variables
+            // Store email in localStorage before navigating
+            localStorage.setItem('pendingConfirmationEmail', variables.email);
+            //localStorage.setItem('pendingConfirmationPassword', variables.confirmPassword);
+            navigate('/confirm-email');
+        }
     );
 
     return (
@@ -56,15 +61,15 @@ const SignUp = () => {
                     initialValues={{
                         name: 'Austin Nguyen', 
                         phoneNumber: '+19136052823', 
-                        email: 'austinkn123@gmail.com', 
+                        email: 'p0rkKch0p123@gmail.com', 
                         password: 'P@ssw0rd', 
                         confirmPassword: 'P@ssw0rd', 
                     }}
                     validationSchema={SignUpSchema}
                     onSubmit={async (values, { setSubmitting, setErrors }) => {
                         try {
+                            // Pass the email to the mutation's onSuccess through variables
                             await signUp(values);
-                            // Navigation is handled by mutation's onSuccess
                         } catch (err) {
                             // Error is handled by the mutation's error state (mutationError)
                             // or you can set form-level errors if needed:
