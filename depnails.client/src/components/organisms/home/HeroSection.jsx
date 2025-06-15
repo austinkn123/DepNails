@@ -5,7 +5,7 @@ const HeroSection = () => {
     return (
         <Box sx={{ textAlign: 'center', my: 4, py: 4, backgroundColor: 'primary.light', color: 'primary.contrastText', borderRadius: 2 }}>
             <Typography variant="h2" component="h1" gutterBottom>
-                Welcome to DepNails!
+                Welcome to Dep Nail Salon!
             </Typography>
             <Typography variant="h5" component="p" gutterBottom>
                 Your one-stop destination for beautiful nails and relaxation.
