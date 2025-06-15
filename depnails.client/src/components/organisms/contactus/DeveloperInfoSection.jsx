@@ -16,7 +16,7 @@ const developerInfo = {
 
 const DeveloperInfoSection = () => {
     return (
-        <Paper elevation={2} sx={{ p: 3, mt: 4, backgroundColor: 'background.default' }}>
+        <Paper elevation={2} sx={{ p: 3, backgroundColor: 'background.default' }}>
             <Stack direction={{ xs: 'column', sm: 'row' }} spacing={3} alignItems="center">
                 {developerInfo.avatarUrl && (
                     <Avatar
@@ -54,9 +54,6 @@ const DeveloperInfoSection = () => {
                     </Stack>
                 </Box>
             </Stack>
-            <Typography variant="caption" display="block" sx={{ textAlign: 'center', mt: 3, color: 'text.disabled' }}>
-                This website was lovingly crafted. 
-            </Typography>
         </Paper>
     );
 };

@@ -61,35 +61,53 @@ const AppointmentForm = () => {
     return (
         <Box component="form" onSubmit={handleSubmit} sx={{ mt: 3 }}>
             <Grid container spacing={3}>
-                <ServiceSelector
-                    services={availableServices}
-                    selectedService={formData.service}
-                    handleChange={handleChange}
-                />
-                <TechnicianSelector
-                    technicians={availableTechnicians}
-                    selectedTechnician={formData.technician}
-                    handleChange={handleChange}
-                />
-                <DateTimeSelector
-                    dateValue={formData.date}
-                    timeValue={formData.time}
-                    handleDateChange={handleChange} // Using general handleChange
-                    handleTimeChange={handleChange} // Using general handleChange
-                />
-                <PersonalInfoFields
-                    values={{
-                        firstName: formData.firstName,
-                        lastName: formData.lastName,
-                        email: formData.email,
-                        phone: formData.phone,
-                    }}
-                    handleChange={handleChange}
-                />
-                <NotesField
+                <Grid size={6}>
+                    <ServiceSelector
+                        services={availableServices}
+                        selectedService={formData.service}
+                        handleChange={handleChange}
+                    />
+                </Grid>
+                <Grid size={6}>
+                    <TechnicianSelector
+                        technicians={availableTechnicians}
+                        selectedTechnician={formData.technician}
+                        handleChange={handleChange}
+                    />
+                </Grid>
+                <Grid size={12}>
+                    <DateTimeSelector
+                        dateValue={formData.date}
+                        timeValue={formData.time}
+                        handleDateChange={handleChange} // Using general handleChange
+                        handleTimeChange={handleChange} // Using general handleChange
+                    />
+                </Grid>
+                <Grid size={12}>
+                    <PersonalInfoFields
+                        values={{
+                            firstName: formData.firstName,
+                            lastName: formData.lastName,
+                            email: formData.email,
+                            phone: formData.phone,
+                        }}
+                        handleChange={handleChange}
+                    />
+                </Grid>
+                <Grid size={6}>
+                    <NotesField
                     value={formData.notes}
                     handleChange={handleChange}
                 />
+                </Grid>
+                <Grid size={6}>
+                    
+                </Grid>
+                
+                
+                
+                
+                
                 <Grid item xs={12} sx={{ textAlign: 'center' }}>
                     <Button
                         type="submit"

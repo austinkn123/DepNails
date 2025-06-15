@@ -9,16 +9,9 @@ const Home = () => {
 
     return (
         <Container maxWidth="lg">
-            {/* Hero Section */}
             <HeroSection />
-
-            {/* Featured Services Section */}
             <FeaturedServicesSection />
-
-            {/* Meet Our Technicians Section */}
             <TechniciansSection />
-            
-            {/* Appointments Overview - You can keep or modify this */}
             {appointments && (
                 <Box sx={{ my: 4 }}>
                     <Typography variant="h5" component="h3" gutterBottom align="center">
@@ -29,9 +22,6 @@ const Home = () => {
                     </pre>
                 </Box>
             )}
-
-            {/* You can add more sections here like Gallery, Testimonials, Contact Info */}
-
         </Container>
     );
 }

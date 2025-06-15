@@ -15,7 +15,7 @@ const FeaturedServicesSection = () => {
             <Typography variant="h4" component="h2" gutterBottom align="center" sx={{ mb: 3 }}>
                 Our Popular Services
             </Typography>
-            <Grid container spacing={4}>
+            <Grid container spacing={4} justifyContent="center">
                 {featuredServices.map((service) => (
                     <Grid item key={service.name} xs={12} sm={6} md={4}>
                         <ServiceCard service={service} />

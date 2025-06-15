@@ -27,13 +27,13 @@ const ContactForm = () => {
     };
 
     return (
-        <Paper elevation={3} sx={{ p: 3, height: '100%' }}>
+        <Paper elevation={3} sx={{ p: 3, my:4, height: '100%' }}>
             <Typography variant="h5" component="h3" gutterBottom sx={{ mb: 3 }}>
                 Send Us a Message
             </Typography>
             <form onSubmit={handleSubmit}>
                 <Grid container spacing={2}>
-                    <Grid item xs={12} sm={6}>
+                    <Grid size={4}>
                         <TextField
                             required
                             fullWidth
@@ -45,7 +45,7 @@ const ContactForm = () => {
                             autoComplete="name"
                         />
                     </Grid>
-                    <Grid item xs={12} sm={6}>
+                    <Grid size={4}>
                         <TextField
                             required
                             fullWidth
@@ -58,7 +58,7 @@ const ContactForm = () => {
                             autoComplete="email"
                         />
                     </Grid>
-                    <Grid item xs={12}>
+                    <Grid size={4}>
                         <TextField
                             required
                             fullWidth
@@ -69,7 +69,7 @@ const ContactForm = () => {
                             onChange={handleChange}
                         />
                     </Grid>
-                    <Grid item xs={12}>
+                    <Grid size={12}>
                         <TextField
                             required
                             fullWidth

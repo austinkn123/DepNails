@@ -1,4 +1,4 @@
-import React from 'react';
+import React, {useState} from 'react';
 import { Grid, Box, Typography, TextField, InputAdornment, IconButton } from '@mui/material';
 import ServiceListItem from '../../molecules/services/ServiceListItem';
 import SearchIcon from '@mui/icons-material/Search'; // Assuming you have MUI icons installed
@@ -54,7 +54,7 @@ const allServices = [
 
 const ServiceList = () => {
     // Basic search state - in a real app, this would filter `allServices`
-    const [searchTerm, setSearchTerm] = React.useState('');
+    const [searchTerm, setSearchTerm] = useState('');
 
     const handleSearchChange = (event) => {
         setSearchTerm(event.target.value);
@@ -75,21 +75,12 @@ const ServiceList = () => {
                     value={searchTerm}
                     onChange={handleSearchChange}
                     sx={{ width: {xs: '100%', sm: '50%', md: '33%'} }}
-                    InputProps={{
-                        endAdornment: (
-                            <InputAdornment position="end">
-                                <IconButton edge="end">
-                                    <SearchIcon />
-                                </IconButton>
-                            </InputAdornment>
-                        )
-                    }}
                 />
             </Box>
             {filteredServices.length > 0 ? (
-                <Grid container spacing={0}> {/* No spacing here, ServiceListItem handles its own margin */}
+                <Grid container spacing={0}> 
                     {filteredServices.map((service) => (
-                        <Grid item key={service.id} xs={12}> {/* Each service takes full width, stacking vertically */}
+                        <Grid item key={service.id} size={12} > 
                             <ServiceListItem service={service} />
                         </Grid>
                     ))}
