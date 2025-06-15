@@ -11,7 +11,7 @@ const developerInfo = {
     bio: "Full-stack developer passionate about creating beautiful and functional web applications.",
     githubUrl: "https://github.com/austinkn123", // Your GitHub profile URL
     linkedinUrl: "https://linkedin.com/in/austin-nguyen6545", // Your LinkedIn profile URL
-    email: "mailto:youremail@example.com" // Your email address
+    email: "mailto:austinkn123@gmail.com" // Your email address
 };
 
 const DeveloperInfoSection = () => {
