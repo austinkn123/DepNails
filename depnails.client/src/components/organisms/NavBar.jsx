@@ -4,10 +4,10 @@ import Container from '@mui/material/Container';
 import { useNavigate } from "react-router-dom";
 import { useAuth } from '../../context/AuthContext';
 import { logoutUser } from '../../../queries/Auth';
-import Logo from '../molecules/Logo'; // Added import
-import MobileNavigationMenu from '../molecules/MobileNavigationMenu'; // Added import
-import DesktopNavigationLinks from '../molecules/DesktopNavigationLinks'; // Added import
-import UserSettingsMenu from '../molecules/UserSettingsMenu'; // Added import
+import Logo from '../molecules/navbar/Logo'; // Added import
+import MobileNavigationMenu from '../molecules/navbar/MobileNavigationMenu'; // Added import
+import DesktopNavigationLinks from '../molecules/navbar/DesktopNavigationLinks'; // Added import
+import UserSettingsMenu from '../molecules/navbar/UserSettingsMenu'; // Added import
 
 const pages = [
     { name: 'Home', path: '/' }, // Corrected Home path
