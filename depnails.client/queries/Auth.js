@@ -1,5 +1,6 @@
 import { useMutation } from '@tanstack/react-query';
 import axiosInstance from '../utils/interceptor';
+import { toast } from 'react-toastify'; // Import toast
 
 export const loginUser = (onSuccessCallback, onErrorCallback) => {
     const login = useMutation({
@@ -12,10 +13,12 @@ export const loginUser = (onSuccessCallback, onErrorCallback) => {
             return response.data;
         },
         onSuccess: (data, variables, context) => {
+            toast.success('Login successful!'); // Added toast
             console.log('Login successful, token stored.');
             if (onSuccessCallback) onSuccessCallback(data, variables, context);
         },
         onError: (error) => {
+            toast.error(error.message || 'Login failed.'); // Added toast
             console.error('Login failed:', error);
             if (onErrorCallback) onErrorCallback(error);
         },
@@ -82,10 +85,12 @@ export const logoutUser = (onSuccessCallback, onErrorCallback) => {
             return response.data;
         },
         onSuccess: (data, variables, context) => {
+            toast.success('Logout successful!'); // Added toast
             console.log('Logout successful.');
             if (onSuccessCallback) onSuccessCallback(data, variables, context);
         },
         onError: (error) => {
+            toast.error(error.message || 'Logout failed.'); // Added toast
             console.error('Logout failed:', error);
             if (onErrorCallback) onErrorCallback(error);
         },

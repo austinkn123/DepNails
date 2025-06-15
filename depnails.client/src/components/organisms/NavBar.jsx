@@ -1,4 +1,3 @@
-import {useState} from 'react';
 import AppBar from '@mui/material/AppBar';
 import Box from '@mui/material/Box';
 import Toolbar from '@mui/material/Toolbar';
@@ -12,8 +11,9 @@ import Tooltip from '@mui/material/Tooltip';
 import MenuItem from '@mui/material/MenuItem';
 import AccountCircleIcon from '@mui/icons-material/AccountCircle';
 import { Link, useNavigate } from "react-router-dom";
-import { useAuth } from '../../context/AuthContext';
+import { useAuth } from '../../context/AuthContext'; // Corrected import path
 import { logoutUser } from '../../../queries/Auth'; // Added import
+import { useState } from 'react';
 
 const pages = [
     { name: 'Home', path: '' },
@@ -33,46 +33,35 @@ const loggedOutSettings = [
 ];
 
 function NavBar() {
-    const { isAuthenticated, logout, accessToken } = useAuth(); // Added accessToken
-    const navigate = useNavigate();
+    const { isAuthenticated, logout, accessToken } = useAuth();    const navigate = useNavigate();
     const [navMenuAnchor, setNavMenuAnchor] = useState(null);
     const [userMenuAnchor, setUserMenuAnchor] = useState(null);
 
-    const apiLogoutMutation = logoutUser(); // Instantiate the mutation
-
+    const apiLogoutMutation = logoutUser(
+        () => { // onSuccess
+            logout(); // Call context logout
+            navigate('/'); // Redirect to login or home page
+        },
+        (error) => { // onError
+            console.error('Logout failed:', error);
+            // Optionally, still log out the user locally or show an error message
+            // For now, we'll rely on the user being logged out locally via the context logout above
+            // but you might want to handle this more gracefully depending on UX requirements.
+        }
+    );
     const handleUserMenuAction = (actionOrPath) => {
         setUserMenuAnchor(null);
         if (actionOrPath === 'logout') {
-            console.log(accessToken)
+            // Call the logout mutation
             if (accessToken) {
-                apiLogoutMutation.mutate(
-                    { accessToken: accessToken }, // Data for the mutation
-                    {
-                        onSuccess: () => {
-                            // The console.log from Auth.js's own onSuccess will also fire.
-                            console.log('API logout successful from NavBar, proceeding with client-side cleanup.');
-                            logout(); // from useAuth - clears local auth state
-                            navigate('/'); // Redirect to home
-                        },
-                        onError: (error) => {
-                            // The console.error from Auth.js's own onError will also fire.
-                            console.error('API logout failed from NavBar:', error);
-                            // Consider notifying the user or attempting a local logout anyway.
-                            // For now, logging the error. If the session is invalid on the server,
-                            // the user might encounter issues. A forced local logout could be an option:
-                            // logout();
-                            // navigate('/');
-                        }
-                    }
-                );
+                apiLogoutMutation.mutateAsync({ accessToken });
             } else {
-                console.error('Access token not available for logout. Performing local logout only.');
-                logout(); // Fallback to local logout
-                navigate('/');
+                // If there's no access token, just log out locally
+                logout();
+                navigate('/login');
             }
         } else if (actionOrPath === 'profile') {
-            console.log("Profile action");
-            // navigate('/profile');
+            navigate('/profile'); 
         } else {
             navigate(actionOrPath);
         }
