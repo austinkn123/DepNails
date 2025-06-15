@@ -3,9 +3,8 @@ import {
     Route,
     Routes,
     Navigate,
-    useLocation // Import useLocation
+    useLocation 
 } from "react-router-dom";
-import { ToastContainer } from 'react-toastify';
 import { theme } from "../layout/Theme";
 import { ThemeProvider } from '@mui/material/styles';
 import Home from "./components/pages/Home";
@@ -14,10 +13,13 @@ import NavBar from "./components/organisms/NavBar";
 import Appointment from "./components/pages/Appointment";
 import Services from "./components/pages/Services";
 import ContactUs from "./components/pages/ContactUs";
-import Login from "./components/pages/Login"; // Import Login page
-import SignUp from "./components/pages/SignUp"; // Import SignUp page
-import ConfirmEmail from "./components/pages/ConfirmEmail"; // Import ConfirmEmail page
-import { AuthProvider } from "./context/AuthContext";
+import Login from "./components/pages/Login"; 
+import SignUp from "./components/pages/SignUp"; 
+import Profile from "./components/pages/Profile";
+import ConfirmEmail from "./components/pages/ConfirmEmail"; 
+import CssBaseline from '@mui/material/CssBaseline';
+import { ToastContainer } from 'react-toastify'; 
+import 'react-toastify/dist/ReactToastify.css'; 
 
 
 function AppContent() { // Create a new component to use useLocation
@@ -31,13 +33,12 @@ function AppContent() { // Create a new component to use useLocation
                 <Route path='/' element={<Home />} />
                 <Route path='/login' element={<Login />} />
                 <Route path='/signup' element={<SignUp />} />
+                <Route path='/profile' element={<Profile />} />
                 <Route path='/confirm-email' element={<ConfirmEmail />} /> 
                 <Route path='/not-found' element={<NotFound />} />
                 <Route path='/appointment' element={<Appointment />} />
                 <Route path='/services' element={<Services />} />
                 <Route path='/contact-us' element={<ContactUs />} />
-                
-                {/* Fallback for unmatched routes */}
                 <Route path='*' element={<Navigate to='/not-found' />} />
             </Routes>
         </>
@@ -46,14 +47,15 @@ function AppContent() { // Create a new component to use useLocation
 
 function App() {
     return (
-        <ThemeProvider theme={theme}>
-            <Router>
-                <AuthProvider> {/* Wrap with AuthProvider */}
+        <>
+            <CssBaseline />
+            <ThemeProvider theme={theme}>
+                <Router>
                     <AppContent /> {/* Render AppContent which contains conditional NavBar and Routes */}
-                    <ToastContainer />
-                </AuthProvider> {/* Close AuthProvider */}
-            </Router>
-        </ThemeProvider>
+                </Router>
+                <ToastContainer />
+            </ThemeProvider>
+        </>
     );
 }
 
