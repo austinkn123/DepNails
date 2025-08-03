@@ -2,7 +2,7 @@ import { Typography, Box, Container, IconButton, Button, CircularProgress, TextF
 import HomeIcon from '@mui/icons-material/Home';
 import { Link as RouterLink, useNavigate } from 'react-router-dom';
 import { useState, useEffect } from 'react';
-import { confirmEmailUser } from '../../../queries/Auth';
+import { useConfirmEmailUser } from '../../../queries/Auth';
 import { useAuth } from '../../context/AuthContext';
 
 const ConfirmEmail = () => {
@@ -26,19 +26,18 @@ const ConfirmEmail = () => {
     }, []); 
 
     const {
-        mutate: confirmEmailMutation,
+        confirmEmail,
         isPending,
         isSuccess,
-        isError,
         error,
         reset,
         data: mutationData
-    } = confirmEmailUser(
+    } = useConfirmEmailUser(
         (responseData) => {
             if (responseData && responseData.accessToken) { // Check for accessToken
                 contextLogin(responseData.accessToken); // Pass only the accessToken
                 localStorage.removeItem('pendingConfirmationEmail');
-                localStorage.removeItem('pendingConfirmationPassword'); 
+                localStorage.removeItem('pendingConfirmationPassword');
                 navigate('/'); // Navigate immediately
             } else {
                 console.error("Confirmation success but no auth data (accessToken) received. Raw response:", responseData);
@@ -55,7 +54,7 @@ const ConfirmEmail = () => {
         console.log(confirmationCode)
         console.log(passwordForConfirmation)
         if (emailForConfirmation && confirmationCode && passwordForConfirmation) { // Check for password
-            confirmEmailMutation({
+            confirmEmail({
                 email: emailForConfirmation,
                 confirmationCode: confirmationCode,
                 password: passwordForConfirmation // Include password in the mutation

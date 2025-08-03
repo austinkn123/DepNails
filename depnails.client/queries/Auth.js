@@ -1,100 +1,74 @@
-import { useMutation } from '@tanstack/react-query';
+import useSWRMutation from 'swr/mutation';
 import axiosInstance from '../utils/interceptor';
-import { toast } from 'react-toastify'; // Import toast
+import { toast } from 'react-toastify';
 
-export const loginUser = (onSuccessCallback, onErrorCallback) => {
-    const login = useMutation({
-        mutationFn: async (loginData) => {
-            const response = await axiosInstance({
-                url: '/Auth/login',
-                method: 'POST',
-                data: loginData,
-            });
-            return response.data;
-        },
-        onSuccess: (data, variables, context) => {
-            toast.success('Login successful!'); // Added toast
+// A generic fetcher for mutations that uses axiosInstance.post
+async function postFetcher(url, { arg }) {
+    const response = await axiosInstance.post(url, arg);
+    return response.data;
+}
+
+export const useLoginUser = (onSuccessCallback, onErrorCallback) => {
+    const { trigger, isMutating, error } = useSWRMutation('/Auth/login', postFetcher, {
+        onSuccess: (data, key, config) => {
+            toast.success('Login successful!');
             console.log('Login successful, token stored.');
-            if (onSuccessCallback) onSuccessCallback(data, variables, context);
+            if (onSuccessCallback) onSuccessCallback(data);
         },
-        onError: (error) => {
-            toast.error(error.message || 'Login failed.'); // Added toast
-            console.error('Login failed:', error);
-            if (onErrorCallback) onErrorCallback(error);
+        onError: (err) => {
+            const errorMessage = err.response?.data?.message || err.message || 'Login failed.';
+            toast.error(errorMessage);
+            console.error('Login failed:', err);
+            if (onErrorCallback) onErrorCallback(err);
         },
-    })
+    });
 
-    return login;
+    return { login: trigger, isPending: isMutating, error };
 };
 
-export const registerUser = (onSuccessCallback, onErrorCallback) => {
-
-    const signUp = useMutation({
-        mutationFn: async (signUpData) => {
-            const response = await axiosInstance({
-                url: '/Auth/signup', // Assuming this is your signup endpoint
-                method: 'POST',
-                data: signUpData,
-            });
-            return response.data;
-        },
-        onSuccess: (data, variables, context) => {
+export const useRegisterUser = (onSuccessCallback, onErrorCallback) => {
+    const { trigger, isMutating, error } = useSWRMutation('/Auth/signup', postFetcher, {
+        onSuccess: (data, key, config) => {
             console.log('Registration success:', data);
-            if (onSuccessCallback) onSuccessCallback(data, variables, context);
+            if (onSuccessCallback) onSuccessCallback(data, config.arg);
         },
-        onError: (error) => {
-            console.error('Registration failed:', error);
-            if (onErrorCallback) onErrorCallback(error);
+        onError: (err) => {
+            console.error('Registration failed:', err);
+            if (onErrorCallback) onErrorCallback(err);
         },
-    })
+    });
 
-    return signUp;
+    return { signUp: trigger, isPending: isMutating, error };
 };
 
-export const confirmEmailUser = (onSuccessCallback, onErrorCallback) => {
-    const confirmEmail = useMutation({
-        mutationFn: async (confirmationData) => {
-            const response = await axiosInstance({
-                url: '/Auth/confirm-email', // Assuming this is your email confirmation endpoint
-                method: 'POST',
-                data: confirmationData, // Sending email and mapped token in the request body
-            });
-            return response.data;
-        },
-        onSuccess: (data, variables, context) => {
+export const useConfirmEmailUser = (onSuccessCallback, onErrorCallback) => {
+    const { trigger, isMutating, error, data, reset } = useSWRMutation('/Auth/confirm-email', postFetcher, {
+        onSuccess: (data, key, config) => {
             console.log('Email confirmation successful:', data);
-            if (onSuccessCallback) onSuccessCallback(data, variables, context);
+            if (onSuccessCallback) onSuccessCallback(data);
         },
-        onError: (error) => {
-            console.error('Email confirmation failed:', error);
-            if (onErrorCallback) onErrorCallback(error);
+        onError: (err) => {
+            console.error('Email confirmation failed:', err);
+            if (onErrorCallback) onErrorCallback(err);
         },
     });
 
-    return confirmEmail;
+    return { confirmEmail: trigger, isPending: isMutating, error, data, isSuccess: !!data, reset };
 };
 
-export const logoutUser = (onSuccessCallback, onErrorCallback) => {
-    const logout = useMutation({
-        mutationFn: async (logoutData) => { // logoutData might include the access token, depending on backend
-            const response = await axiosInstance({
-                url: '/Auth/logout',
-                method: 'POST',
-                data: logoutData, // Send necessary data, e.g., { accessToken: 'token' }
-            });
-            return response.data;
-        },
-        onSuccess: (data, variables, context) => {
-            toast.success('Logout successful!'); // Added toast
+export const useLogoutUser = (onSuccessCallback, onErrorCallback) => {
+    const { trigger, isMutating } = useSWRMutation('/Auth/logout', postFetcher, {
+        onSuccess: (data) => {
+            toast.success('Logout successful!');
             console.log('Logout successful.');
-            if (onSuccessCallback) onSuccessCallback(data, variables, context);
+            if (onSuccessCallback) onSuccessCallback(data);
         },
-        onError: (error) => {
-            toast.error(error.message || 'Logout failed.'); // Added toast
-            console.error('Logout failed:', error);
-            if (onErrorCallback) onErrorCallback(error);
+        onError: (err) => {
+            toast.error(err.message || 'Logout failed.');
+            console.error('Logout failed:', err);
+            if (onErrorCallback) onErrorCallback(err);
         },
     });
 
-    return logout;
+    return { logout: trigger, isPending: isMutating };
 };

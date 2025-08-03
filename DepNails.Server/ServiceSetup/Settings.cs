@@ -12,7 +12,12 @@ namespace DepNails.Server.ServiceSetup
     {
         public static void AddDataServices(this IServiceCollection services, string connectionString)
         {
-            services.AddScoped<IDbConnection>(provider => new NpgsqlConnection(connectionString));
+            services.AddScoped<IDbConnection>(provider =>
+            {
+                var connection = new NpgsqlConnection(connectionString);
+                connection.Open();
+                return connection;
+            });
 
             // Register repositories
             services.AddScoped<ITechniciansRepository, TechniciansRepository>();

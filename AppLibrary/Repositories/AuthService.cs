@@ -140,10 +140,17 @@ namespace DepNails.Server.Services
                 };
                 await _cognitoClient.GlobalSignOutAsync(globalSignOutRequest);
             }
+            catch (NotAuthorizedException)
+            {
+                // This specific exception is thrown if the access token is expired or invalid.
+                // In this context, the user is effectively logged out, so we can treat this
+                // as a success and not re-throw the exception.
+            }
             catch (Exception ex)
             {
-                // Log the exception
-                throw new Exception($"An error occurred during logout: {ex.Message}", ex);
+                // Log other, unexpected exceptions
+                // For example: _logger.LogError(ex, "An unexpected error occurred during logout.");
+                throw; // Re-throw the original, unexpected exception
             }
 
         }

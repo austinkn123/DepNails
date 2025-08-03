@@ -4,7 +4,7 @@ import * as Yup from 'yup';
 import { Button, TextField, InputAdornment, IconButton, Typography } from '@mui/material';
 import Visibility from '@mui/icons-material/Visibility';
 import VisibilityOff from '@mui/icons-material/VisibilityOff';
-import { loginUser } from '../../../../queries/Auth';
+import { useLoginUser } from '../../../../queries/Auth';
 import { useNavigate } from 'react-router-dom';
 import { useAuth } from '../../../context/AuthContext';
 
@@ -18,7 +18,7 @@ const LoginForm = () => {
         event.preventDefault();
     };
 
-    const { mutate: loginMutation, isPending, error: mutationError } = loginUser( // Renamed from loginMutation to match SignUpForm pattern and get error directly
+    const { login, isPending, error: mutationError } = useLoginUser(
         (data) => {
             console.log('Login successful:', data);
             contextLogin(data.accessToken);
@@ -38,7 +38,7 @@ const LoginForm = () => {
             })}
             onSubmit={async (values, { setSubmitting }) => {
                 try {
-                    await loginMutation(values); // Changed to call loginMutation directly
+                    await login(values);
                 } catch (error) {
                     console.error("Login submission error:", error);
                 }

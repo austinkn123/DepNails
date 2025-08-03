@@ -1,7 +1,7 @@
 import { useState } from 'react';
 import { Formik, Form } from 'formik';
 import * as Yup from 'yup';
-import { registerUser } from '../../../../queries/Auth';
+import { useRegisterUser } from '../../../../queries/Auth';
 import { Button, Container, Typography, Box, IconButton, TextField, InputAdornment } from '@mui/material';
 import { MuiTelInput } from 'mui-tel-input';
 import { Link as RouterLink, useNavigate } from 'react-router-dom';
@@ -42,7 +42,7 @@ const SignUpForm = () => {
         event.preventDefault();
     };
 
-    const { mutate: signUp, isPending, error: mutationError } = registerUser(
+    const { signUp, isPending, error: mutationError } = useRegisterUser(
         (data, variables) => {
             localStorage.setItem('pendingConfirmationEmail', variables.email);
             localStorage.setItem('pendingConfirmationPassword', variables.password);

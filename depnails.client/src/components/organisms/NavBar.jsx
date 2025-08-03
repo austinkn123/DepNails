@@ -3,7 +3,7 @@ import Toolbar from '@mui/material/Toolbar';
 import Container from '@mui/material/Container';
 import { useNavigate } from "react-router-dom";
 import { useAuth } from '../../context/AuthContext';
-import { logoutUser } from '../../../queries/Auth';
+import { useLogoutUser } from '../../../queries/Auth';
 import Logo from '../molecules/navbar/Logo'; // Added import
 import MobileNavigationMenu from '../molecules/navbar/MobileNavigationMenu'; // Added import
 import DesktopNavigationLinks from '../molecules/navbar/DesktopNavigationLinks'; // Added import
@@ -30,10 +30,10 @@ function NavBar() {
     const { isAuthenticated, logout, accessToken } = useAuth();
     const navigate = useNavigate();
 
-    const apiLogoutMutation = logoutUser(
+    const { logout: apiLogout, isPending: isLoggingOut } = useLogoutUser(
         () => { // onSuccess
             logout();
-            navigate('/');
+            navigate('/login');
         },
         (error) => { // onError
             console.error('Logout failed:', error);
@@ -46,7 +46,7 @@ function NavBar() {
     const handleUserMenuAction = (actionOrPath) => {
         if (actionOrPath === 'logout') {
             if (accessToken) {
-                apiLogoutMutation.mutateAsync({ accessToken });
+                apiLogout({ accessToken });
             }
             else {
                 logout();

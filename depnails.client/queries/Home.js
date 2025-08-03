@@ -1,22 +1,18 @@
-import { useQuery } from '@tanstack/react-query';
-import axiosInstance from '../utils/interceptor'; // Assuming axiosInstance is your configured axios
+import useSWR from 'swr';
+import axiosInstance from '../utils/interceptor';
+
+// Define a fetcher function that SWR will use for all requests
+// It takes the URL and uses your axios instance to make the request.
+const fetcher = (url) => axiosInstance.get(url).then(res => res.data);
 
 export const QueryKeys = {
-    appointments: ['/appointment/all']
+    appointments: '/appointment/all' // SWR uses a simple string key
 };
 
 export const getAllAppointments = () => {
-    const { data, isLoading: loading } = useQuery({
-        queryKey: QueryKeys.appointments,
-        queryFn: async () => {
-            // Correctly pass the URL and method to axiosInstance
-            const response = await axiosInstance({ 
-                url: QueryKeys.appointments[0], // Use the first element of the array as the URL path
-                method: 'GET' 
-            }); 
-            return response.data;
-        }
-    });
+    // useSWR returns data, error, and isLoading directly
+    const { data, error, isLoading } = useSWR(QueryKeys.appointments, fetcher);
 
-    return { data, loading };
+
+    return { data, isLoading, error };
 };
