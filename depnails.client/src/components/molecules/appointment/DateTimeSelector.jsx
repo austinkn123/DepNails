@@ -3,7 +3,7 @@ import { TextField, Grid } from '@mui/material';
 
 const DateTimeSelector = ({ dateValue, timeValue, handleDateChange, handleTimeChange }) => {
     return (
-        <>
+        <Grid container spacing={2}>
             <Grid item xs={12} sm={6}>
                 <TextField
                     required
@@ -13,7 +13,7 @@ const DateTimeSelector = ({ dateValue, timeValue, handleDateChange, handleTimeCh
                     label="Preferred Date"
                     type="date"
                     value={dateValue}
-                    onChange={handleDateChange} // Or a general handleChange if name attribute is used consistently
+                    onChange={handleDateChange}
                     InputLabelProps={{
                         shrink: true,
                     }}
@@ -28,7 +28,7 @@ const DateTimeSelector = ({ dateValue, timeValue, handleDateChange, handleTimeCh
                     label="Preferred Time"
                     type="time"
                     value={timeValue}
-                    onChange={handleTimeChange} // Or a general handleChange
+                    onChange={handleTimeChange}
                     InputLabelProps={{
                         shrink: true,
                     }}
@@ -37,7 +37,7 @@ const DateTimeSelector = ({ dateValue, timeValue, handleDateChange, handleTimeCh
                     }}
                 />
             </Grid>
-        </>
+        </Grid>
     );
 };
 

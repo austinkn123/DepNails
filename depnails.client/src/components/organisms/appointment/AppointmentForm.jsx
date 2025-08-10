@@ -16,6 +16,7 @@ import NotesField from '../../molecules/appointment/NotesField';
 
 // Placeholder data - replace with actual data fetching or pass as props
 const availableServices = [
+    { id: '0', name: 'Select', description: '', duration: 30, price: 25 },
     { id: '1', name: 'Manicure', description: '', duration: 30, price: 25 },
     { id: '2', name: 'Pedicure', description: '', duration: 45, price: 35 },
     { id: '3', name: 'Nail Art', description: '', duration: 60, price: 50 },
@@ -23,6 +24,7 @@ const availableServices = [
 ];
 
 const availableTechnicians = [
+    { id: '0', name: 'Select' },
     { id: '1', name: 'Jane Doe' },
     { id: '2', name: 'Alex Smith' },
     { id: '3', name: 'Sarah Lee' },
@@ -45,7 +47,7 @@ const AppointmentForm = () => {
         lastName: '',
         email: '',
         phone: '',
-        technicianId: '',
+        technicianId: '0',
         appointmentDate: '',
         appointmentTime: '',
         duration: '',
@@ -137,8 +139,7 @@ const AppointmentForm = () => {
                     <ServiceSelector
                         services={availableServices}
                         selectedServices={formData.services}
-                        handleChange={handleServiceChange}
-                        multiple
+                        onServiceChange={handleServiceChange}
                     />
                 );
             case 4:
