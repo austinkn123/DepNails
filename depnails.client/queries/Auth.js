@@ -27,16 +27,23 @@ export const useLoginUser = (onSuccessCallback, onErrorCallback) => {
 };
 
 export const useRegisterUser = (onSuccessCallback, onErrorCallback) => {
-    const { trigger, isMutating, error } = useSWRMutation('/Auth/signup', postFetcher, {
-        onSuccess: (data, key, config) => {
-            console.log('Registration success:', data);
-            if (onSuccessCallback) onSuccessCallback(data, config.arg);
-        },
-        onError: (err) => {
-            console.error('Registration failed:', err);
-            if (onErrorCallback) onErrorCallback(err);
-        },
-    });
+    const { trigger, isMutating, error } = useSWRMutation(
+        '/Auth/signup',
+        postFetcher,
+        {
+            onSuccess: (data, key) => {
+                console.log('Registration success:', data);
+                // Access the variables from the config object
+                if (onSuccessCallback) {
+                    onSuccessCallback(data, key);
+                }
+            },
+            onError: (err) => {
+                console.error('Registration failed:', err);
+                if (onErrorCallback) onErrorCallback(err);
+            },
+        }
+    );
 
     return { signUp: trigger, isPending: isMutating, error };
 };

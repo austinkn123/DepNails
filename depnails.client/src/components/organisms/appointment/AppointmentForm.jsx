@@ -1,5 +1,13 @@
 import React, { useState } from 'react';
-import { Grid, Button, Box } from '@mui/material';
+import {
+    Stepper,
+    Step,
+    StepLabel,
+    Button,
+    Box,
+    Grid,
+    Typography
+} from '@mui/material';
 import ServiceSelector from '../../molecules/appointment/ServiceSelector';
 import TechnicianSelector from '../../molecules/appointment/TechnicianSelector';
 import DateTimeSelector from '../../molecules/appointment/DateTimeSelector';
@@ -8,10 +16,10 @@ import NotesField from '../../molecules/appointment/NotesField';
 
 // Placeholder data - replace with actual data fetching or pass as props
 const availableServices = [
-    { id: '1', name: 'Manicure' },
-    { id: '2', name: 'Pedicure' },
-    { id: '3', name: 'Nail Art' },
-    { id: '4', name: 'Gel Extensions' },
+    { id: '1', name: 'Manicure', description: '', duration: 30, price: 25 },
+    { id: '2', name: 'Pedicure', description: '', duration: 45, price: 35 },
+    { id: '3', name: 'Nail Art', description: '', duration: 60, price: 50 },
+    { id: '4', name: 'Gel Extensions', description: '', duration: 90, price: 70 },
 ];
 
 const availableTechnicians = [
@@ -20,17 +28,30 @@ const availableTechnicians = [
     { id: '3', name: 'Sarah Lee' },
 ];
 
+
+const steps = [
+    'Personal Info',
+    'Select Technician',
+    'Date & Time',
+    'Select Services',
+    'Notes & Review'
+];
+
 const AppointmentForm = () => {
+    const [activeStep, setActiveStep] = useState(0);
     const [formData, setFormData] = useState({
-        service: '',
-        technician: '',
-        date: '',
-        time: '',
+        clientId: '', // Could be mapped from logged-in user or entered
         firstName: '',
         lastName: '',
         email: '',
         phone: '',
-        notes: ''
+        technicianId: '',
+        appointmentDate: '',
+        appointmentTime: '',
+        duration: '',
+        status: 'pending',
+        notes: '',
+        services: []
     });
 
     const handleChange = (event) => {
@@ -41,49 +62,49 @@ const AppointmentForm = () => {
         }));
     };
 
-    // Specific handlers for date and time if DateTimeSelector needs them separately
-    // Or adapt DateTimeSelector to use the general handleChange with name attributes
-    const handleDateChange = (event) => {
-        setFormData(prevState => ({ ...prevState, date: event.target.value }));
+    // For service selection (multi-select)
+    const handleServiceChange = (selectedServices) => {
+        setFormData(prevState => ({
+            ...prevState,
+            services: selectedServices
+        }));
     };
 
+    // For technician selection
+    const handleTechnicianChange = (event) => {
+        setFormData(prevState => ({
+            ...prevState,
+            technicianId: event.target.value
+        }));
+    };
+
+    // For date and time
+    const handleDateChange = (event) => {
+        setFormData(prevState => ({ ...prevState, appointmentDate: event.target.value }));
+    };
     const handleTimeChange = (event) => {
-        setFormData(prevState => ({ ...prevState, time: event.target.value }));
+        setFormData(prevState => ({ ...prevState, appointmentTime: event.target.value }));
+    };
+
+    const handleNext = () => {
+        setActiveStep(prev => prev + 1);
+    };
+    const handleBack = () => {
+        setActiveStep(prev => prev - 1);
     };
 
     const handleSubmit = (event) => {
         event.preventDefault();
-        console.log('Appointment Data:', formData);
         // Here you would typically send the data to your backend API
+        console.log('Appointment Data:', formData);
         alert('Appointment requested! (Check console for data)');
     };
 
-    return (
-        <Box component="form" onSubmit={handleSubmit} sx={{ mt: 3 }}>
-            <Grid container spacing={3}>
-                <Grid size={6}>
-                    <ServiceSelector
-                        services={availableServices}
-                        selectedService={formData.service}
-                        handleChange={handleChange}
-                    />
-                </Grid>
-                <Grid size={6}>
-                    <TechnicianSelector
-                        technicians={availableTechnicians}
-                        selectedTechnician={formData.technician}
-                        handleChange={handleChange}
-                    />
-                </Grid>
-                <Grid size={12}>
-                    <DateTimeSelector
-                        dateValue={formData.date}
-                        timeValue={formData.time}
-                        handleDateChange={handleChange} // Using general handleChange
-                        handleTimeChange={handleChange} // Using general handleChange
-                    />
-                </Grid>
-                <Grid size={12}>
+    // Step content
+    const getStepContent = (step) => {
+        switch (step) {
+            case 0:
+                return (
                     <PersonalInfoFields
                         values={{
                             firstName: formData.firstName,
@@ -93,31 +114,85 @@ const AppointmentForm = () => {
                         }}
                         handleChange={handleChange}
                     />
+                );
+            case 1:
+                return (
+                    <TechnicianSelector
+                        technicians={availableTechnicians}
+                        selectedTechnician={formData.technicianId}
+                        handleChange={handleTechnicianChange}
+                    />
+                );
+            case 2:
+                return (
+                    <DateTimeSelector
+                        dateValue={formData.appointmentDate}
+                        timeValue={formData.appointmentTime}
+                        handleDateChange={handleDateChange}
+                        handleTimeChange={handleTimeChange}
+                    />
+                );
+            case 3:
+                return (
+                    <ServiceSelector
+                        services={availableServices}
+                        selectedServices={formData.services}
+                        handleChange={handleServiceChange}
+                        multiple
+                    />
+                );
+            case 4:
+                return (
+                    <>
+                        <NotesField
+                            value={formData.notes}
+                            handleChange={handleChange}
+                        />
+                        <Box sx={{ mt: 2 }}>
+                            <Typography variant="subtitle1">Review:</Typography>
+                            <pre>{JSON.stringify(formData, null, 2)}</pre>
+                        </Box>
+                    </>
+                );
+            default:
+                return null;
+        }
+    };
+
+    return (
+        <Box component="form" onSubmit={handleSubmit} sx={{ mt: 3 }}>
+            <Stepper activeStep={activeStep} sx={{ mb: 4 }}>
+                {steps.map((label) => (
+                    <Step key={label}>
+                        <StepLabel>{label}</StepLabel>
+                    </Step>
+                ))}
+            </Stepper>
+            <Grid container spacing={3} justifyContent="center">
+                <Grid item xs={12} md={8}>
+                    {getStepContent(activeStep)}
                 </Grid>
-                <Grid size={6}>
-                    <NotesField
-                    value={formData.notes}
-                    handleChange={handleChange}
-                />
-                </Grid>
-                <Grid size={6}>
-                    
-                </Grid>
-                
-                
-                
-                
-                
-                <Grid item xs={12} sx={{ textAlign: 'center' }}>
-                    <Button
-                        type="submit"
-                        variant="contained"
-                        color="primary"
-                        size="large"
-                        sx={{ mt: 2, px: 5, py: 1.5 }}
-                    >
-                        Request Appointment
-                    </Button>
+                <Grid item xs={12} sx={{ textAlign: 'center', mt: 2 }}>
+                    {activeStep > 0 && (
+                        <Button onClick={handleBack} sx={{ mr: 2 }}>
+                            Back
+                        </Button>
+                    )}
+                    {activeStep < steps.length - 1 ? (
+                        <Button variant="contained" color="primary" onClick={handleNext}>
+                            Next
+                        </Button>
+                    ) : (
+                        <Button
+                            type="submit"
+                            variant="contained"
+                            color="primary"
+                            size="large"
+                            sx={{ px: 5, py: 1.5 }}
+                        >
+                            Request Appointment
+                        </Button>
+                    )}
                 </Grid>
             </Grid>
         </Box>

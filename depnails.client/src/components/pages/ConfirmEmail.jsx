@@ -139,7 +139,7 @@ const ConfirmEmail = () => {
                                 onChange={(e) => setConfirmationCode(e.target.value)}
                                 disabled={isPending}
                             />
-                            {isError && (
+                            {!!error && (
                                 <Typography color="error" sx={{ mt: 2, mb: 1 }}>
                                     {error?.response?.data?.message || error?.message || 'Confirmation failed. Please check the code and try again.'}
                                 </Typography>

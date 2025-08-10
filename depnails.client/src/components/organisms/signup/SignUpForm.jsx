@@ -42,10 +42,10 @@ const SignUpForm = () => {
         event.preventDefault();
     };
 
-    const { signUp, isPending, error: mutationError } = useRegisterUser(
-        (data, variables) => {
-            localStorage.setItem('pendingConfirmationEmail', variables.email);
-            localStorage.setItem('pendingConfirmationPassword', variables.password);
+     const { signUp, isPending, error: mutationError } = useRegisterUser(
+        (data) => {
+            localStorage.setItem('pendingConfirmationEmail', email.value);
+            localStorage.setItem('pendingConfirmationPassword', password.value);
             navigate('/confirm-email');
         }
     );
@@ -62,7 +62,7 @@ const SignUpForm = () => {
                     initialValues={{
                         name: 'Austin Nguyen',
                         phoneNumber: '+19136052823',
-                        email: 'jason.trung71@gmail.com',
+                        email: 'austinkn123@gmail.com',
                         password: 'P@ssw0rd',
                         confirmPassword: 'P@ssw0rd',
                     }}
