@@ -159,44 +159,54 @@ const AppointmentForm = () => {
         }
     };
 
-    return (
-        <Box component="form" onSubmit={handleSubmit} sx={{ mt: 3 }}>
-            <Stepper activeStep={activeStep} sx={{ mb: 4 }}>
-                {steps.map((label) => (
-                    <Step key={label}>
-                        <StepLabel>{label}</StepLabel>
-                    </Step>
-                ))}
-            </Stepper>
-            <Grid container spacing={3} justifyContent="center">
-                <Grid item xs={12} md={8}>
-                    {getStepContent(activeStep)}
+        return (
+            <Box
+                component="form"
+                onSubmit={handleSubmit}
+                sx={{ mt: 3, width: '100%', maxWidth: 600, mx: 'auto', px: 2 }}
+            >
+                <Box sx={{ width: '100%', overflowX: 'auto', mb: 4 }}>
+                    <Stepper
+                        activeStep={activeStep}
+                        sx={{ minWidth: 400, width: '100%' }}
+                        alternativeLabel
+                    >
+                        {steps.map((label) => (
+                            <Step key={label}>
+                                <StepLabel>{label}</StepLabel>
+                            </Step>
+                        ))}
+                    </Stepper>
+                </Box>
+                <Grid container spacing={3} justifyContent="center" sx={{ width: '100%' }}>
+                    <Grid item xs={12}>
+                        {getStepContent(activeStep)}
+                    </Grid>
+                    <Grid item xs={12} sx={{ textAlign: 'center', mt: 2 }}>
+                        {activeStep > 0 && (
+                            <Button onClick={handleBack} sx={{ mr: 2 }}>
+                                Back
+                            </Button>
+                        )}
+                        {activeStep < steps.length - 1 ? (
+                            <Button variant="contained" color="primary" onClick={handleNext}>
+                                Next
+                            </Button>
+                        ) : (
+                            <Button
+                                type="submit"
+                                variant="contained"
+                                color="primary"
+                                size="large"
+                                sx={{ px: 5, py: 1.5 }}
+                            >
+                                Request Appointment
+                            </Button>
+                        )}
+                    </Grid>
                 </Grid>
-                <Grid item xs={12} sx={{ textAlign: 'center', mt: 2 }}>
-                    {activeStep > 0 && (
-                        <Button onClick={handleBack} sx={{ mr: 2 }}>
-                            Back
-                        </Button>
-                    )}
-                    {activeStep < steps.length - 1 ? (
-                        <Button variant="contained" color="primary" onClick={handleNext}>
-                            Next
-                        </Button>
-                    ) : (
-                        <Button
-                            type="submit"
-                            variant="contained"
-                            color="primary"
-                            size="large"
-                            sx={{ px: 5, py: 1.5 }}
-                        >
-                            Request Appointment
-                        </Button>
-                    )}
-                </Grid>
-            </Grid>
-        </Box>
-    );
+            </Box>
+        );
 };
 
 export default AppointmentForm;

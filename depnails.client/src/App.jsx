@@ -28,7 +28,8 @@ function AppContent() { // Create a new component to use useLocation
 
     return (
         <>
-            {showNavBar && <NavBar />} 
+            {showNavBar && <NavBar />}
+             
             <Routes>
                 <Route path='/' element={<Home />} />
                 <Route path='/login' element={<Login />} />
