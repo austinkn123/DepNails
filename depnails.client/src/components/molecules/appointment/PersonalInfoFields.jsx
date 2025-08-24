@@ -1,10 +1,11 @@
 import React from 'react';
 import { TextField, Grid } from '@mui/material';
 
-const PersonalInfoFields = ({ values, handleChange }) => {
+const PersonalInfoFields = ({ formikProps }) => {
+    const { values, handleChange, errors, touched } = formikProps;
     return (
-        <Grid container spacing={2}>
-            <Grid item xs={12} sm={6}>
+        <Grid container spacing={2} justifyContent="center">
+            <Grid size={{ xs: 12, sm: 6 }}>
                 <TextField
                     required
                     fullWidth
@@ -14,9 +15,11 @@ const PersonalInfoFields = ({ values, handleChange }) => {
                     value={values.firstName}
                     onChange={handleChange}
                     autoComplete="given-name"
+                    error={touched.firstName && !!errors.firstName}
+                    helperText={touched.firstName && errors.firstName}
                 />
             </Grid>
-            <Grid item xs={12} sm={6}>
+            <Grid size={{ xs: 12, sm: 6 }}>
                 <TextField
                     required
                     fullWidth
@@ -26,9 +29,11 @@ const PersonalInfoFields = ({ values, handleChange }) => {
                     value={values.lastName}
                     onChange={handleChange}
                     autoComplete="family-name"
+                    error={touched.lastName && !!errors.lastName}
+                    helperText={touched.lastName && errors.lastName}
                 />
             </Grid>
-            <Grid item xs={12} sm={6}>
+            <Grid size={{ xs: 12, sm: 6 }}>
                 <TextField
                     required
                     fullWidth
@@ -39,9 +44,11 @@ const PersonalInfoFields = ({ values, handleChange }) => {
                     value={values.email}
                     onChange={handleChange}
                     autoComplete="email"
+                    error={touched.email && !!errors.email}
+                    helperText={touched.email && errors.email}
                 />
             </Grid>
-            <Grid item xs={12} sm={6}>
+            <Grid size={{ xs: 12, sm: 6 }}>
                 <TextField
                     required
                     fullWidth
@@ -52,6 +59,8 @@ const PersonalInfoFields = ({ values, handleChange }) => {
                     value={values.phone}
                     onChange={handleChange}
                     autoComplete="tel"
+                    error={touched.phone && !!errors.phone}
+                    helperText={touched.phone && errors.phone}
                 />
             </Grid>
         </Grid>

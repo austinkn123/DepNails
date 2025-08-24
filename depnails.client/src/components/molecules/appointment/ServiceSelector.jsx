@@ -1,13 +1,12 @@
 import React from 'react';
-import { Grid, Card, CardActionArea, CardContent, Typography, Box } from '@mui/material';
+import { Grid, Card, CardActionArea, CardContent, Typography, Box, FormControl, FormHelperText } from '@mui/material';
 
-const ServiceSelector = ({ services, selectedServices, onServiceChange }) => {
-    // Filter out the placeholder "Select" service if it exists
-    const selectableServices = services.filter(s => s.id !== '0');
+const ServiceSelector = ({ services, formikProps }) => {
+    const { values, setFieldValue, errors, touched } = formikProps;
 
     const handleServiceClick = (serviceId) => {
-        const currentIndex = selectedServices.indexOf(serviceId);
-        const newSelectedServices = [...selectedServices];
+        const newSelectedServices = [...values.services];
+        const currentIndex = newSelectedServices.indexOf(serviceId);
 
         if (currentIndex === -1) {
             newSelectedServices.push(serviceId);
@@ -15,21 +14,21 @@ const ServiceSelector = ({ services, selectedServices, onServiceChange }) => {
             newSelectedServices.splice(currentIndex, 1);
         }
 
-        onServiceChange(newSelectedServices);
+        setFieldValue('services', newSelectedServices);
     };
 
     return (
-        <Box>
+        <FormControl error={touched.services && !!errors.services} fullWidth>
             <Typography variant="h6" gutterBottom>Select Services</Typography>
-            <Grid container spacing={2}>
-                {selectableServices.map((service) => (
-                    <Grid item xs={12} sm={6} md={4} key={service.id}>
-                        <Card 
+            <Grid container spacing={2} justifyContent="center">
+                {services.map((service) => (
+                    <Grid size={{ xs: 12, sm: 6, md: 4 }} key={service.id}>
+                        <Card
                             variant="outlined"
-                            sx={{ 
+                            sx={{
                                 height: '100%',
-                                ...(selectedServices.includes(service.id) && { 
-                                    borderColor: 'primary.main', 
+                                ...(values.services && values.services.includes(service.id) && {
+                                    borderColor: 'primary.main',
                                     borderWidth: 2,
                                     backgroundColor: 'action.selected'
                                 })
@@ -52,7 +51,8 @@ const ServiceSelector = ({ services, selectedServices, onServiceChange }) => {
                     </Grid>
                 ))}
             </Grid>
-        </Box>
+            {touched.services && errors.services && <FormHelperText sx={{textAlign: 'center', mt: 1}}>{errors.services}</FormHelperText>}
+        </FormControl>
     );
 };
 

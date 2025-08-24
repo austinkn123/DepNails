@@ -4,7 +4,7 @@ import * as Yup from 'yup';
 import { useRegisterUser } from '../../../../queries/Auth';
 import { Button, Container, Typography, Box, IconButton, TextField, InputAdornment } from '@mui/material';
 import { MuiTelInput } from 'mui-tel-input';
-import { Link as RouterLink, useNavigate } from 'react-router-dom';
+import { useNavigate } from "react-router-dom";
 import Visibility from '@mui/icons-material/Visibility';
 import VisibilityOff from '@mui/icons-material/VisibilityOff';
 

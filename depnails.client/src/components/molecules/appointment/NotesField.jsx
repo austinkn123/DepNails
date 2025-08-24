@@ -1,18 +1,19 @@
 import React from 'react';
 import { TextField, Grid } from '@mui/material';
 
-const NotesField = ({ value, handleChange, name = "notes" }) => {
+const NotesField = ({ formikProps }) => {
+    const { values, handleChange } = formikProps;
     return (
         <Grid container spacing={2}>
-            <Grid item xs={12}>
+            <Grid size={{ xs: 12 }}>
                 <TextField
                     fullWidth
                     id="notes"
-                    name={name}
+                    name="notes"
                     label="Notes / Special Requests (Optional)"
                     multiline
                     rows={4}
-                    value={value}
+                    value={values.notes}
                     onChange={handleChange}
                 />
             </Grid>
