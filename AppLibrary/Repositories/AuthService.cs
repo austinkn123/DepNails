@@ -31,7 +31,7 @@ namespace DepNails.Server.Services
         {
             try
             {
-                throw new NotImplementedException("SignUpAsync is not implemented yet. Please implement this method to handle user registration.");
+                // throw new NotImplementedException("SignUpAsync is not implemented yet. Please implement this method to handle user registration.");
                 var userAttributes = new List<AttributeType>
                 {
                     new AttributeType { Name = "email", Value = request.Email },

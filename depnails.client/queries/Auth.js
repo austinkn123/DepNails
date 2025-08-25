@@ -31,11 +31,12 @@ export const useRegisterUser = (onSuccessCallback, onErrorCallback) => {
         '/Auth/signup',
         postFetcher,
         {
-            onSuccess: (data, key) => {
+            onSuccess: (data, key, config) => {
                 console.log('Registration success:', data);
                 // Access the variables from the config object
                 if (onSuccessCallback) {
-                    onSuccessCallback(data, key);
+                    // Pass the original form values from extraData to the callback
+                    onSuccessCallback(data, key, config.extraData);
                 }
             },
             onError: (err) => {

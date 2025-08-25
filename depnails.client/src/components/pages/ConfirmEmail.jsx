@@ -1,29 +1,18 @@
 import { Typography, Box, Container, IconButton, Button, CircularProgress, TextField } from '@mui/material';
 import HomeIcon from '@mui/icons-material/Home';
-import { Link as RouterLink, useNavigate } from 'react-router-dom';
+import { Link as RouterLink, useNavigate, useLocation } from 'react-router-dom';
 import { useState, useEffect } from 'react';
 import { useConfirmEmailUser } from '../../../queries/Auth';
 import { useAuth } from '../../context/AuthContext';
 
 const ConfirmEmail = () => {
     const navigate = useNavigate();
+    const location = useLocation();
     const { login: contextLogin } = useAuth();
 
     const [confirmationCode, setConfirmationCode] = useState('');
-    const [emailForConfirmation, setEmailForConfirmation] = useState(''); // State to hold the email
-    const [passwordForConfirmation, setPasswordForConfirmation] = useState(''); // State to hold the password
-
-    // Retrieve email and password from localStorage when component mounts
-    useEffect(() => {
-        const storedEmail = localStorage.getItem('pendingConfirmationEmail');
-        const storedPassword = localStorage.getItem('pendingConfirmationPassword'); // Retrieve password
-        if (storedEmail) {
-            setEmailForConfirmation(storedEmail);
-        }
-        if (storedPassword) {
-            setPasswordForConfirmation(storedPassword);
-        }
-    }, []); 
+    const emailForConfirmation = location.state?.email;
+    const passwordForConfirmation = location.state?.password;
 
     const {
         confirmEmail,
@@ -36,8 +25,6 @@ const ConfirmEmail = () => {
         (responseData) => {
             if (responseData && responseData.accessToken) { // Check for accessToken
                 contextLogin(responseData.accessToken); // Pass only the accessToken
-                localStorage.removeItem('pendingConfirmationEmail');
-                localStorage.removeItem('pendingConfirmationPassword');
                 navigate('/'); // Navigate immediately
             } else {
                 console.error("Confirmation success but no auth data (accessToken) received. Raw response:", responseData);

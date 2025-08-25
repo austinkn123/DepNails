@@ -32,7 +32,7 @@ const availableTechnicians = [
 ];
 
 const AppointmentForm = () => {
-    const { isAuthenticated, user } = useAuth();
+    const { isAuthenticated } = useAuth();
 
     const initialValues = {
         // fix login to be serverside and to have all this info when logged in

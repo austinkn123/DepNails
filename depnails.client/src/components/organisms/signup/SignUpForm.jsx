@@ -43,10 +43,9 @@ const SignUpForm = () => {
     };
 
      const { signUp, isPending, error: mutationError } = useRegisterUser(
-        (data) => {
-            localStorage.setItem('pendingConfirmationEmail', email.value);
-            localStorage.setItem('pendingConfirmationPassword', password.value);
-            navigate('/confirm-email');
+        (data, key, values) => { // Accept values from onSubmit
+            // Pass email and password to the confirmation page via navigation state
+            navigate('/confirm-email', { state: { email: values.email, password: values.password } });
         }
     );
 
@@ -70,8 +69,10 @@ const SignUpForm = () => {
                     onSubmit={async (values, { setSubmitting }) => {
                         const { confirmPassword, ...submissionData } = values;
                         try {
-                            await signUp(submissionData);
+                            // Pass the original values to the signUp function's onSuccess callback
+                            await signUp(submissionData, { extraData: values });
                         } catch (err) {
+                            console.error('Signup error:', err);
                         }
                         setSubmitting(false);
                     }}
