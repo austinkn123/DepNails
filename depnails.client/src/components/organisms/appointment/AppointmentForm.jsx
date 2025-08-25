@@ -32,16 +32,18 @@ const availableTechnicians = [
 ];
 
 const AppointmentForm = () => {
-    const { isAuthenticated } = useAuth();
+    const { isAuthenticated, userProfile, isLoadingProfile } = useAuth();
+
+    useEffect(() => {
+        console.log('User Profile:', userProfile);
+    }, [userProfile]);
 
     const initialValues = {
-        // fix login to be serverside and to have all this info when logged in
-        clientId: '', 
-        firstName: 'Austin',
-        lastName: 'Powers',
-        email: 'austin.powers@example.com',
-        phone: '123-456-7890',
-
+        clientId: userProfile?.clientId || 0,
+        firstName: userProfile?.firstName || '',
+        lastName: userProfile?.lastName || '',
+        email: userProfile?.email || '',
+        phone: userProfile?.phoneNumber || '',
 
         technicianId: '',
         appointmentDate: '',
@@ -53,18 +55,24 @@ const AppointmentForm = () => {
 
     const validate = (values) => {
         const errors = {};
-        if (!values.firstName) errors.firstName = 'First name is required';
-        if (!values.lastName) errors.lastName = 'Last name is required';
-        if (!values.email) {
-            errors.email = 'Email is required';
-        } else if (!/\S+@\S+\.\S+/.test(values.email)) {
-            errors.email = 'Email address is invalid';
+        
+        // Only validate personal info if user is not authenticated
+        if (!isAuthenticated) {
+            if (!values.firstName) errors.firstName = 'First name is required';
+            if (!values.lastName) errors.lastName = 'Last name is required';
+            if (!values.email) {
+                errors.email = 'Email is required';
+            } else if (!/\S+@\S+\.\S+/.test(values.email)) {
+                errors.email = 'Email address is invalid';
+            }
+            if (!values.phone) {
+                errors.phone = 'Phone number is required';
+            } else if (!/^\(?([0-9]{3})\)?[-. ]?([0-9]{3})[-. ]?([0-9]{4})$/.test(values.phone)) {
+                errors.phone = 'Phone number is invalid';
+            }
         }
-        if (!values.phone) {
-            errors.phone = 'Phone number is required';
-        } else if (!/^\(?([0-9]{3})\)?[-. ]?([0-9]{3})[-. ]?([0-9]{4})$/.test(values.phone)) {
-            errors.phone = 'Phone number is invalid';
-        }
+        
+        // Always validate appointment details
         if (!values.technicianId) errors.technicianId = 'Please select a technician';
         if (!values.appointmentDate) errors.appointmentDate = 'Please select a date';
         if (!values.appointmentTime) errors.appointmentTime = 'Please select a time';
@@ -74,10 +82,25 @@ const AppointmentForm = () => {
     };
 
     const handleSubmit = (values, { setSubmitting, resetForm }) => {
-        console.log('Appointment Data:', values);
+        console.log('Form submission started...');
+        console.log('Is Authenticated:', isAuthenticated);
+        console.log('User Profile:', userProfile);
+        console.log('Form Values:', values);
+        
+        // For authenticated users, ensure personal info is included from userProfile
+        const appointmentData = {
+            ...values,
+            firstName: isAuthenticated ? (userProfile?.firstName || values.firstName) : values.firstName,
+            lastName: isAuthenticated ? (userProfile?.lastName || values.lastName) : values.lastName,
+            email: isAuthenticated ? (userProfile?.email || values.email) : values.email,
+            phone: isAuthenticated ? (userProfile?.phoneNumber || values.phone) : values.phone,
+        };
+        
+        console.log('Final Appointment Data:', appointmentData);
         alert('Appointment requested! (Check console for data)');
         setSubmitting(false);
-        resetForm();
+        // Don't reset form immediately to allow debugging
+        // resetForm();
     };
 
     return (
@@ -93,6 +116,15 @@ const AppointmentForm = () => {
                         <Typography variant="h4" gutterBottom align="center">
                             Book Your Appointment
                         </Typography>
+                        
+                        {isAuthenticated && isLoadingProfile && (
+                            <Box sx={{ textAlign: 'center', mb: 2 }}>
+                                <Typography variant="body2" color="text.secondary">
+                                    Loading your profile information...
+                                </Typography>
+                            </Box>
+                        )}
+                        
                         <Grid container spacing={4}>
                             {!isAuthenticated && (
                                 <Grid size={{ xs: 12 }}>

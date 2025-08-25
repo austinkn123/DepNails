@@ -16,8 +16,8 @@ namespace AppLibrary.Repositories
                 client.LastName,
                 client.Email,
                 client.Phone,
-                client.DateOfBirth,
-                client.CreatedAt
+                client.CreatedAt,
+                client.CognitoUserId
             });
         }
 
@@ -36,11 +36,16 @@ namespace AppLibrary.Repositories
             return dbConnection.QueryFirstOrDefault<Client>(GetClientQuery, new { Id = id });
         }
 
+        public Client? GetClientByCognitoUserId(Guid? cognitoUserId)
+        {
+            return dbConnection.QueryFirstOrDefault<Client>(GetClientByCognitoUserIdQuery, new { CognitoUserId = cognitoUserId });
+        }
+
         #region queries
 
         private const string AddClientQuery = @"
-            INSERT INTO public.clients (first_name, last_name, email, phone, date_of_birth, created_at)
-            VALUES (@FirstName, @LastName, @Email, @Phone, @DateOfBirth, @CreatedAt)
+            INSERT INTO public.clients (first_name, last_name, email, phone, created_at, cognito_sub)
+            VALUES (@FirstName, @LastName, @Email, @Phone, @CreatedAt, @CognitoUserId)
         ";
 
         private const string RemoveClientQuery = @"
@@ -49,14 +54,20 @@ namespace AppLibrary.Repositories
         ";
 
         private const string GetAllClientsQuery = @"
-            SELECT id, first_name as firstName, last_name as lastName, email, phone, date_of_birth as dateOfBirth, created_at as createdAt
+            SELECT id, first_name as firstName, last_name as lastName, email, phone, created_at as createdAt
 	        FROM public.clients;
         ";
 
         private const string GetClientQuery = @"
-            SELECT id, first_name as firstName, last_name as lastName, email, phone, date_of_birth as dateOfBirth, created_at as createdAt
+            SELECT id, first_name as firstName, last_name as lastName, email, phone, created_at as createdAt
             FROM public.clients
             WHERE Id = @Id
+        ";
+
+        private const string GetClientByCognitoUserIdQuery = @"
+            SELECT id, first_name as firstName, last_name as lastName, email, phone, created_at as createdAt
+            FROM public.clients
+            WHERE cognito_sub = @CognitoUserId
         ";
 
         #endregion

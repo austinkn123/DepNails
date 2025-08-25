@@ -1,10 +1,17 @@
 import useSWRMutation from 'swr/mutation';
+import useSWR from 'swr';
 import axiosInstance from '../utils/interceptor';
 import { toast } from 'react-toastify';
 
 // A generic fetcher for mutations that uses axiosInstance.post
 async function postFetcher(url, { arg }) {
     const response = await axiosInstance.post(url, arg);
+    return response.data;
+}
+
+// A generic fetcher for GET requests
+async function getFetcher(url) {
+    const response = await axiosInstance.get(url);
     return response.data;
 }
 
@@ -79,4 +86,23 @@ export const useLogoutUser = (onSuccessCallback, onErrorCallback) => {
     });
 
     return { logout: trigger, isPending: isMutating };
+};
+
+export const useUserProfile = (shouldFetch = false) => {
+    const { data, error, isLoading, mutate } = useSWR(
+        shouldFetch ? '/Auth/profile' : null, 
+        getFetcher,
+        {
+            revalidateOnFocus: false,
+            revalidateOnReconnect: false,
+            errorRetryCount: 1,
+        }
+    );
+
+    return { 
+        userProfile: data, 
+        isLoading, 
+        error, 
+        refetch: mutate 
+    };
 };

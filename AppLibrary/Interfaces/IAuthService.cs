@@ -7,6 +7,7 @@ namespace AppLibrary.Interfaces
         Task<AuthResponse> SignUpAsync(AccountSignUpRequest request);
         Task<AuthResponse> LoginAsync(LoginRequest request);
         Task LogoutAsync(LogoutRequest request);
-        Task<AuthResponse> ConfirmEmailAsync(ConfirmEmailRequest request); // Modified to return AuthResponse
+        Task<AuthResponse> ConfirmEmailAsync(ConfirmEmailRequest request);
+        Task<UserProfile> GetUserProfileAsync(string idToken);
     }
 }

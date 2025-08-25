@@ -4,6 +4,5 @@ namespace AppLibrary.Models.Account
     {
         public string Email { get; set; }
         public string ConfirmationCode { get; set; }
-        public string? Password { get; set; } // Added password field, made nullable
     }
 }

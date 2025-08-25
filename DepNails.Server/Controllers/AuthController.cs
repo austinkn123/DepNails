@@ -1,5 +1,6 @@
 // Filepath: c:\Users\Austin\Projects\DepNails\DepNails.Server\Controllers\AuthController.cs
 using AppLibrary.Interfaces;
+using AppLibrary.Models;
 using AppLibrary.Models.Account;
 using Microsoft.AspNetCore.Mvc;
 
@@ -10,10 +11,12 @@ namespace DepNails.Server.Controllers
     public class AuthController : ControllerBase
     {
         private readonly IAuthService _authService;
+        private readonly IClientsRepository _clientsRepository;
 
-        public AuthController(IAuthService authService)
+        public AuthController(IAuthService authService, IClientsRepository clientsRepository)
         {
             _authService = authService;
+            _clientsRepository = clientsRepository;
         }
 
         [HttpPost("signup")]
@@ -21,8 +24,21 @@ namespace DepNails.Server.Controllers
         {
             try
             {
-                //return Ok();
                 var result = await _authService.SignUpAsync(request);
+
+                if (result.UserSub != null)
+                {
+                    _clientsRepository.AddClient(new Client
+                    {
+                        Email = request.Email,
+                        FirstName = request.FirstName,
+                        LastName = request.LastName,
+                        Phone = request.PhoneNumber,
+                        CognitoUserId = Guid.Parse(result.UserSub),
+                        CreatedAt = DateTime.UtcNow
+                    });
+                }
+
                 return Ok(result);
             }
             catch (Exception ex)
@@ -76,6 +92,41 @@ namespace DepNails.Server.Controllers
             {
                 // Log the exception details for server-side diagnostics
                 // For example: _logger.LogError(ex, "Error during email confirmation for {Email}", request.Email);
+                return BadRequest(new { message = ex.Message });
+            }
+        }
+
+        [HttpGet("profile")]
+        public async Task<IActionResult> GetProfile()
+        {
+            try
+            {
+                // Get the Authorization header
+                var authHeader = Request.Headers["Authorization"].FirstOrDefault();
+                if (string.IsNullOrEmpty(authHeader) || !authHeader.StartsWith("Bearer "))
+                {
+                    return Unauthorized(new { message = "Authorization header is missing or invalid" });
+                }
+
+                // Extract the ID token (assuming it's sent as the bearer token)
+                var idToken = authHeader.Substring("Bearer ".Length).Trim();
+                
+                var userProfile = await _authService.GetUserProfileAsync(idToken);
+                Client? client = null;
+                if (userProfile != null && !string.IsNullOrEmpty(userProfile.Sub))
+                {
+                    if (Guid.TryParse(userProfile.Sub, out var userGuid))
+                    {
+                        client = _clientsRepository.GetClientByCognitoUserId(userGuid);
+                        userProfile.ClientId = client?.Id;
+                    }
+                }
+
+                return Ok(userProfile);
+            }
+            catch (Exception ex)
+            {
+                // Log the exception
                 return BadRequest(new { message = ex.Message });
             }
         }

@@ -1,18 +1,16 @@
 import { Typography, Box, Container, IconButton, Button, CircularProgress, TextField } from '@mui/material';
 import HomeIcon from '@mui/icons-material/Home';
+import CheckCircleOutlineIcon from '@mui/icons-material/CheckCircleOutline';
 import { Link as RouterLink, useNavigate, useLocation } from 'react-router-dom';
 import { useState, useEffect } from 'react';
 import { useConfirmEmailUser } from '../../../queries/Auth';
-import { useAuth } from '../../context/AuthContext';
 
 const ConfirmEmail = () => {
     const navigate = useNavigate();
     const location = useLocation();
-    const { login: contextLogin } = useAuth();
 
     const [confirmationCode, setConfirmationCode] = useState('');
     const emailForConfirmation = location.state?.email;
-    const passwordForConfirmation = location.state?.password;
 
     const {
         confirmEmail,
@@ -23,12 +21,8 @@ const ConfirmEmail = () => {
         data: mutationData
     } = useConfirmEmailUser(
         (responseData) => {
-            if (responseData && responseData.accessToken) { // Check for accessToken
-                contextLogin(responseData.accessToken); // Pass only the accessToken
-                navigate('/'); // Navigate immediately
-            } else {
-                console.error("Confirmation success but no auth data (accessToken) received. Raw response:", responseData);
-            }
+            // Email confirmed successfully, navigate to login page
+            navigate('/login', { state: { email: emailForConfirmation, message: 'Email confirmed successfully! Please log in.' } });
         },
         (err) => {
             console.error("Confirmation API error:", err);
@@ -39,12 +33,10 @@ const ConfirmEmail = () => {
         event.preventDefault();
         console.log(emailForConfirmation)
         console.log(confirmationCode)
-        console.log(passwordForConfirmation)
-        if (emailForConfirmation && confirmationCode && passwordForConfirmation) { // Check for password
+        if (emailForConfirmation && confirmationCode) {
             confirmEmail({
                 email: emailForConfirmation,
-                confirmationCode: confirmationCode,
-                password: passwordForConfirmation // Include password in the mutation
+                confirmationCode: confirmationCode
             });
         }
     };
@@ -82,23 +74,11 @@ const ConfirmEmail = () => {
                         <Typography variant="h6">Confirming your email...</Typography>
                     </>
                 )}
-                {isSuccess && mutationData && mutationData.accessToken && (
+                {isSuccess && (
                     <>
                         <CheckCircleOutlineIcon color="success" sx={{ fontSize: 50, mb: 2 }} />
                         <Typography variant="h6" gutterBottom>Email Confirmed Successfully!</Typography>
-                        <Typography variant="body1">You are now being redirected...</Typography>
-                    </>
-                )}
-                {isSuccess && !(mutationData && mutationData.accessToken) && (
-                    <>
-                        <ErrorOutlineIcon color="error" sx={{ fontSize: 50, mb: 2 }} />
-                        <Typography variant="h6" gutterBottom>Confirmation Succeeded, Login Failed</Typography>
-                        <Typography variant="body1" color="error" sx={{ mb: 2 }}>
-                            Your email was confirmed, but we couldn't log you in automatically. Please try logging in manually.
-                        </Typography>
-                        <Button component={RouterLink} to="/login" variant="contained">
-                            Go to Login
-                        </Button>
+                        <Typography variant="body1">Redirecting you to the login page...</Typography>
                     </>
                 )}
                 {!isPending && !isSuccess && (
@@ -136,9 +116,9 @@ const ConfirmEmail = () => {
                                 fullWidth
                                 variant="contained"
                                 sx={{ mt: 3, mb: 2 }}
-                                disabled={isPending || !confirmationCode || !emailForConfirmation} // Ensure email is also present
+                                disabled={isPending || !confirmationCode || !emailForConfirmation}
                             >
-                                {isPending ? 'Confirming...' : 'Confirm & Login'}
+                                {isPending ? 'Confirming...' : 'Confirm Email'}
                             </Button>
                             <Button
                                 component={RouterLink}

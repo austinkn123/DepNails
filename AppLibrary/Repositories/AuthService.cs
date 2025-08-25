@@ -5,6 +5,7 @@ using Amazon.Extensions.CognitoAuthentication;
 using AppLibrary.Interfaces;
 using AppLibrary.Models.Account;
 using AppLibrary.Models.Configuration;
+using System.IdentityModel.Tokens.Jwt;
 using System.Reflection;
 
 namespace DepNails.Server.Services
@@ -34,10 +35,30 @@ namespace DepNails.Server.Services
                 // throw new NotImplementedException("SignUpAsync is not implemented yet. Please implement this method to handle user registration.");
                 var userAttributes = new List<AttributeType>
                 {
-                    new AttributeType { Name = "email", Value = request.Email },
-                    new AttributeType { Name = "name", Value = request.Name },
-                    new AttributeType { Name = "phone_number", Value = request.PhoneNumber }
+                    new AttributeType { Name = "email", Value = request.Email }
                 };
+
+                if (!string.IsNullOrEmpty(request.FirstName) || !string.IsNullOrEmpty(request.LastName))
+                {
+                    var fullName = $"{request.FirstName?.Trim()} {request.LastName?.Trim()}".Trim();
+                    userAttributes.Add(new AttributeType { Name = "name", Value = fullName });
+                }
+
+                // Add first and last names if provided
+                if (!string.IsNullOrEmpty(request.FirstName))
+                {
+                    userAttributes.Add(new AttributeType { Name = "given_name", Value = request.FirstName });
+                }
+                if (!string.IsNullOrEmpty(request.LastName))
+                {
+                    userAttributes.Add(new AttributeType { Name = "family_name", Value = request.LastName });
+                }
+
+                // Add phone number if provided
+                if (!string.IsNullOrEmpty(request.PhoneNumber))
+                {
+                    userAttributes.Add(new AttributeType { Name = "phone_number", Value = request.PhoneNumber });
+                }
 
                 var signUpRequest = new SignUpRequest
                 {
@@ -50,23 +71,32 @@ namespace DepNails.Server.Services
 
                 await _cognitoClient.SignUpAsync(signUpRequest); // No need to capture response if not used
 
-                ////TEMP, NEED TO SET UP CONFIRM EMAIL
-                //var confirmRequest = new AdminConfirmSignUpRequest
-                //{
-                //    UserPoolId = _userPool.PoolID,
-                //    Username = request.Email
-                //};
-                //await _cognitoClient.AdminConfirmSignUpAsync(confirmRequest);
+                // Get the user's sub immediately after signup
+                string? userSub = null;
+                try
+                {
+                    var getUserRequest = new AdminGetUserRequest
+                    {
+                        UserPoolId = _userPoolId,
+                        Username = request.Email
+                    };
+                    var getUserResponse = await _cognitoClient.AdminGetUserAsync(getUserRequest);
+                    userSub = getUserResponse.UserAttributes.FirstOrDefault(attr => attr.Name == "sub")?.Value;
+                }
+                catch (Exception ex)
+                {
+                    // Log but don't fail the signup process
+                    Console.WriteLine($"Could not retrieve user sub: {ex.Message}");
+                }
 
-                // Return a meaningful AuthResponse, adjust as necessary for your application
-                // This is a placeholder response. Cognito typically requires user confirmation first.
                 return new AuthResponse
                 {
                     IdToken = null,
                     AccessToken = null,
                     RefreshToken = null,
                     ExpiresIn = null,
-                    TokenType = "Bearer"
+                    TokenType = "Bearer",
+                    UserSub = userSub
                 };
             }
             catch (Exception ex)
@@ -163,7 +193,7 @@ namespace DepNails.Server.Services
             var confirmSignUpRequest = new ConfirmSignUpRequest
             {
                 ClientId = _clientId,
-                SecretHash = secretHash, // Required if the app client has a secret
+                SecretHash = secretHash,
                 Username = request.Email,
                 ConfirmationCode = request.ConfirmationCode
             };
@@ -172,49 +202,16 @@ namespace DepNails.Server.Services
             {
                 await _cognitoClient.ConfirmSignUpAsync(confirmSignUpRequest);
 
-                // Attempt to automatically log in the user by generating tokens
-                // NOTE: ADMIN_NO_SRP_AUTH typically requires USERNAME and PASSWORD.
-                // Using it without PASSWORD might only work in specific Cognito configurations
-                // or custom flows. A PostConfirmation Lambda trigger is the more common
-                // way to achieve token generation immediately after confirmation.
-                // This attempt might fail in a standard Cognito setup.
-                var adminInitiateAuthRequest = new AdminInitiateAuthRequest
+                // Email confirmed successfully - return empty AuthResponse to indicate success
+                // User will need to log in separately
+                return new AuthResponse
                 {
-                    UserPoolId = _userPoolId,
-                    ClientId = _clientId,
-                    AuthFlow = AuthFlowType.ADMIN_NO_SRP_AUTH,
-                    AuthParameters = new Dictionary<string, string>
-                    {
-                        { "USERNAME", request.Email },
-                        { "PASSWORD", request.Password }, 
-                        { "SECRET_HASH", secretHash }
-                    }
+                    IdToken = null,
+                    AccessToken = null,
+                    RefreshToken = null,
+                    ExpiresIn = null,
+                    TokenType = "Bearer"
                 };
-
-                try
-                {
-                    var cognitoAuthResponse = await _cognitoClient.AdminInitiateAuthAsync(adminInitiateAuthRequest);
-                    // Successfully authenticated and received tokens
-                    return new AuthResponse
-                    {
-                        IdToken = cognitoAuthResponse.AuthenticationResult.IdToken,
-                        AccessToken = cognitoAuthResponse.AuthenticationResult.AccessToken,
-                        RefreshToken = cognitoAuthResponse.AuthenticationResult.RefreshToken,
-                        ExpiresIn = cognitoAuthResponse.AuthenticationResult.ExpiresIn,
-                        TokenType = cognitoAuthResponse.AuthenticationResult.TokenType ?? "Bearer"
-                    };
-                }
-                catch (NotAuthorizedException ex)
-                {
-                    // This exception is likely if ADMIN_NO_SRP_AUTH requires a password or other parameters are missing/incorrect.
-                    // This means automatic login failed.
-                    throw new Exception($"Email confirmed, but automatic login failed. User may need to log in manually. Cognito error: {ex.Message}", ex);
-                }
-                catch (UserNotFoundException ex)
-                {
-                     throw new Exception($"Email confirmed, but user not found for automatic login. Cognito error: {ex.Message}", ex);
-                }
-                // Catch other relevant Cognito exceptions as needed
             }
             catch (ExpiredCodeException ex)
             {
@@ -228,10 +225,66 @@ namespace DepNails.Server.Services
             {
                 throw new Exception($"Too many requests for email confirmation. Please try again later. {ex.Message}", ex);
             }
-            catch (Exception ex) // General catch for ConfirmSignUpAsync or other unexpected errors
+            catch (Exception ex)
             {
-                // Log the exception
-                throw new Exception($"An error occurred during email confirmation or token generation: {ex.Message}", ex);
+                throw new Exception($"An error occurred during email confirmation: {ex.Message}", ex);
+            }
+        }
+
+        public async Task<UserProfile> GetUserProfileAsync(string idToken)
+        {
+            try
+            {
+                var tokenHandler = new JwtSecurityTokenHandler();
+                var jsonToken = tokenHandler.ReadJwtToken(idToken);
+
+                var profile = new UserProfile();
+
+                // Extract claims from the ID token
+                foreach (var claim in jsonToken.Claims)
+                {
+                    switch (claim.Type)
+                    {
+                        case "email":
+                            profile.Email = claim.Value;
+                            break;
+                        case "given_name":
+                            profile.FirstName = claim.Value;
+                            break;
+                        case "family_name":
+                            profile.LastName = claim.Value;
+                            break;
+                        case "phone_number":
+                            profile.PhoneNumber = claim.Value;
+                            break;
+                        case "name":
+                            profile.Name = claim.Value;
+                            break;
+                        case "sub":
+                            profile.Sub = claim.Value;
+                            break;
+                    }
+                }
+
+                // If first/last name are not available, try to parse from the name field
+                if (string.IsNullOrEmpty(profile.FirstName) && string.IsNullOrEmpty(profile.LastName) && !string.IsNullOrEmpty(profile.Name))
+                {
+                    var nameParts = profile.Name.Split(' ', StringSplitOptions.RemoveEmptyEntries);
+                    if (nameParts.Length > 0)
+                    {
+                        profile.FirstName = nameParts[0];
+                        if (nameParts.Length > 1)
+                        {
+                            profile.LastName = string.Join(" ", nameParts.Skip(1));
+                        }
+                    }
+                }
+
+                return await Task.FromResult(profile);
+            }
+            catch (Exception ex)
+            {
+                throw new Exception($"An error occurred while extracting user profile: {ex.Message}", ex);
             }
         }
     }

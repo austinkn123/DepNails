@@ -10,8 +10,12 @@ const axiosInstance = axios.create({
 // Add request interceptor
 axiosInstance.interceptors.request.use(
     (request) => {
-        // Modify the request object here
-        // Example: Add a header or modify data
+        // Add authorization header if token exists
+        const idToken = localStorage.getItem('idToken');
+        if (idToken) {
+            request.headers.Authorization = `Bearer ${idToken}`;
+        }
+        
         console.log('Request Intercepted:', request);
         return request;
     },

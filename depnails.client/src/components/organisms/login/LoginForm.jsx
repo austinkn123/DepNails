@@ -1,17 +1,28 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import { Formik, Form } from 'formik'; // Changed from useFormik
 import * as Yup from 'yup';
 import { Button, TextField, InputAdornment, IconButton, Typography } from '@mui/material';
 import Visibility from '@mui/icons-material/Visibility';
 import VisibilityOff from '@mui/icons-material/VisibilityOff';
 import { useLoginUser } from '../../../../queries/Auth';
-import { useNavigate } from 'react-router-dom';
+import { useNavigate, useLocation } from 'react-router-dom';
 import { useAuth } from '../../../context/AuthContext';
 
 const LoginForm = () => {
     const navigate = useNavigate();
+    const location = useLocation();
     const { login: contextLogin } = useAuth();
     const [showPassword, setShowPassword] = useState(false);
+    const [successMessage, setSuccessMessage] = useState('');
+
+    // Check for success message from navigation state
+    useEffect(() => {
+        if (location.state?.message) {
+            setSuccessMessage(location.state.message);
+            // Clear the message from location state
+            navigate(location.pathname, { replace: true, state: {} });
+        }
+    }, [location.state, navigate]);
 
     const handleClickShowPassword = () => setShowPassword((show) => !show);
     const handleMouseDownPassword = (event) => {
@@ -21,7 +32,8 @@ const LoginForm = () => {
     const { login, isPending, error: mutationError } = useLoginUser(
         (data) => {
             console.log('Login successful:', data);
-            contextLogin(data.accessToken);
+            // Pass the entire auth response to context
+            contextLogin(data);
             navigate('/');
         }
     );
@@ -29,7 +41,7 @@ const LoginForm = () => {
     return (
         <Formik
             initialValues={{
-                email: 'austinkn123@gmail.com',
+                email: location.state?.email || 'austinkn123@gmail.com',
                 password: 'P@ssw0rd',
             }}
             validationSchema={Yup.object({
@@ -47,6 +59,11 @@ const LoginForm = () => {
         >
             {({ errors, touched, handleChange, handleBlur, values, isSubmitting }) => ( // Added isSubmitting
                 <Form style={{ width: '100%', marginTop: '8px' }}> {/* Changed from form tag to Formik's Form component */}
+                    {successMessage && ( // Display success message
+                        <Typography color="success.main" sx={{ mb: 2, textAlign: 'center' }}>
+                            {successMessage}
+                        </Typography>
+                    )}
                     {mutationError && ( // Display mutation error
                         <Typography color="error" sx={{ mb: 2, textAlign: 'center' }}>
                             {mutationError?.response?.data?.message || mutationError.message || 'An error occurred during login.'}

@@ -9,7 +9,8 @@ import Visibility from '@mui/icons-material/Visibility';
 import VisibilityOff from '@mui/icons-material/VisibilityOff';
 
 const SignUpSchema = Yup.object().shape({
-    name: Yup.string().required('Required'),
+    firstName: Yup.string().required('First name is required'),
+    lastName: Yup.string().required('Last name is required'),
     phoneNumber: Yup.string()
         .transform((value) => (typeof value === 'string' ? value.replace(/[\s()-]/g, '') : value))
         .matches(/^\+1\d{10}$/, 'Phone number must be in +1XXXXXXXXXX format')
@@ -44,8 +45,8 @@ const SignUpForm = () => {
 
      const { signUp, isPending, error: mutationError } = useRegisterUser(
         (data, key, values) => { // Accept values from onSubmit
-            // Pass email and password to the confirmation page via navigation state
-            navigate('/confirm-email', { state: { email: values.email, password: values.password } });
+            // Pass only email to the confirmation page
+            navigate('/confirm-email', { state: { email: values.email } });
         }
     );
 
@@ -59,7 +60,8 @@ const SignUpForm = () => {
             }}>
                 <Formik
                     initialValues={{
-                        name: 'Austin Nguyen',
+                        firstName: 'Austin',
+                        lastName: 'Nguyen',
                         phoneNumber: '+19136052823',
                         email: 'austinkn123@gmail.com',
                         password: 'P@ssw0rd',
@@ -85,20 +87,35 @@ const SignUpForm = () => {
                                 </Typography>
                             )}
                             <TextField
-                                label="Full Name"
-                                id="name"
-                                name="name"
-                                autoComplete="name"
+                                label="First Name"
+                                id="firstName"
+                                name="firstName"
+                                autoComplete="given-name"
                                 type="text"
-                                value={values.name}
+                                value={values.firstName}
                                 onChange={handleChange}
                                 onBlur={handleBlur}
-                                error={touched.name && Boolean(errors.name)}
-                                helperText={touched.name && errors.name}
+                                error={touched.firstName && Boolean(errors.firstName)}
+                                helperText={touched.firstName && errors.firstName}
                                 required
                                 fullWidth
                                 margin="normal"
                                 autoFocus
+                            />
+                            <TextField
+                                label="Last Name"
+                                id="lastName"
+                                name="lastName"
+                                autoComplete="family-name"
+                                type="text"
+                                value={values.lastName}
+                                onChange={handleChange}
+                                onBlur={handleBlur}
+                                error={touched.lastName && Boolean(errors.lastName)}
+                                helperText={touched.lastName && errors.lastName}
+                                required
+                                fullWidth
+                                margin="normal"
                             />
                             <MuiTelInput
                                 label="Phone Number"
