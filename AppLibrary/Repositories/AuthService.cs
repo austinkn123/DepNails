@@ -30,82 +30,65 @@ namespace DepNails.Server.Services
 
         public async Task<AuthResponse> SignUpAsync(AccountSignUpRequest request)
         {
+            if (string.IsNullOrEmpty(request.Email) || string.IsNullOrEmpty(request.Password))
+            {
+                throw new ArgumentException("Email and password are required.");
+            }
+
             try
             {
-                // throw new NotImplementedException("SignUpAsync is not implemented yet. Please implement this method to handle user registration.");
                 var userAttributes = new List<AttributeType>
                 {
-                    new AttributeType { Name = "email", Value = request.Email }
+                    new AttributeType { Name = "email", Value = request.Email.Trim() }
                 };
-
-                if (!string.IsNullOrEmpty(request.FirstName) || !string.IsNullOrEmpty(request.LastName))
-                {
-                    var fullName = $"{request.FirstName?.Trim()} {request.LastName?.Trim()}".Trim();
-                    userAttributes.Add(new AttributeType { Name = "name", Value = fullName });
-                }
-
-                // Add first and last names if provided
-                if (!string.IsNullOrEmpty(request.FirstName))
-                {
-                    userAttributes.Add(new AttributeType { Name = "given_name", Value = request.FirstName });
-                }
-                if (!string.IsNullOrEmpty(request.LastName))
-                {
-                    userAttributes.Add(new AttributeType { Name = "family_name", Value = request.LastName });
-                }
-
-                // Add phone number if provided
-                if (!string.IsNullOrEmpty(request.PhoneNumber))
-                {
-                    userAttributes.Add(new AttributeType { Name = "phone_number", Value = request.PhoneNumber });
-                }
 
                 var signUpRequest = new SignUpRequest
                 {
                     ClientId = _clientId,
-                    Username = request.Email, // Changed from request.Username to request.Email
+                    Username = request.Email.Trim(),
                     Password = request.Password,
                     UserAttributes = userAttributes,
-                    SecretHash = ComputeSecretHash(_clientId, _clientSecret, request.Email) // Add this line
+                    SecretHash = ComputeSecretHash(_clientId, _clientSecret, request.Email.Trim())
                 };
 
-                await _cognitoClient.SignUpAsync(signUpRequest); // No need to capture response if not used
+                var signUpResponse = await _cognitoClient.SignUpAsync(signUpRequest);
+                var userSub = signUpResponse.UserSub;
 
-                // Get the user's sub immediately after signup
-                string? userSub = null;
-                try
+                await _cognitoClient.AdminConfirmSignUpAsync(new AdminConfirmSignUpRequest
                 {
-                    var getUserRequest = new AdminGetUserRequest
+                    UserPoolId = _userPoolId,
+                    Username = request.Email.Trim()
+                });
+
+                var authRequest = new AdminInitiateAuthRequest
+                {
+                    UserPoolId = _userPoolId,
+                    ClientId = _clientId,
+                    AuthFlow = AuthFlowType.ADMIN_USER_PASSWORD_AUTH,
+                    AuthParameters = new Dictionary<string, string>
                     {
-                        UserPoolId = _userPoolId,
-                        Username = request.Email
-                    };
-                    var getUserResponse = await _cognitoClient.AdminGetUserAsync(getUserRequest);
-                    userSub = getUserResponse.UserAttributes.FirstOrDefault(attr => attr.Name == "sub")?.Value;
-                }
-                catch (Exception ex)
-                {
-                    // Log but don't fail the signup process
-                    Console.WriteLine($"Could not retrieve user sub: {ex.Message}");
-                }
+                        { "USERNAME", request.Email.Trim() },
+                        { "PASSWORD", request.Password },
+                        { "SECRET_HASH", ComputeSecretHash(_clientId, _clientSecret, request.Email.Trim()) }
+                    }
+                };
 
+                var authResponse = await _cognitoClient.AdminInitiateAuthAsync(authRequest);
                 return new AuthResponse
                 {
-                    IdToken = null,
-                    AccessToken = null,
-                    RefreshToken = null,
-                    ExpiresIn = null,
-                    TokenType = "Bearer",
+                    IdToken = authResponse.AuthenticationResult.IdToken,
+                    AccessToken = authResponse.AuthenticationResult.AccessToken,
+                    RefreshToken = authResponse.AuthenticationResult.RefreshToken,
+                    ExpiresIn = authResponse.AuthenticationResult.ExpiresIn,
+                    TokenType = authResponse.AuthenticationResult.TokenType ?? "Bearer",
                     UserSub = userSub
                 };
             }
             catch (Exception ex)
             {
-                // Consider logging the exception details for better debugging
-                // For example: _logger.LogError(ex, "Error during sign up for {Email}", request.Email);
-                throw new Exception($"An error occurred during sign up: {ex.Message}", ex); // Rethrow with more context or a custom exception
+                // Wrap with context for higher-level handling
+                throw new Exception($"An error occurred during sign up: {ex.Message}", ex);
             }
-            
         }
 
         // Add this method to compute the secret hash
@@ -177,15 +160,16 @@ namespace DepNails.Server.Services
                 // In this context, the user is effectively logged out, so we can treat this
                 // as a success and not re-throw the exception.
             }
-            catch (Exception ex)
+                catch (Exception)
             {
                 // Log other, unexpected exceptions
                 // For example: _logger.LogError(ex, "An unexpected error occurred during logout.");
-                throw; // Re-throw the original, unexpected exception
+                    throw; // Re-throw the original, unexpected exception
             }
 
         }
 
+        //Might be used in the future
         public async Task<AuthResponse> ConfirmEmailAsync(ConfirmEmailRequest request)
         {
             var secretHash = ComputeSecretHash(_clientId, _clientSecret, request.Email);
