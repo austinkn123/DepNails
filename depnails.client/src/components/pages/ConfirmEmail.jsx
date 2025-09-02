@@ -57,7 +57,7 @@ const ConfirmEmail = () => {
                 textAlign: 'center',
                 position: 'relative',
             }}>
-                {!isSuccess && 
+                {(!isSuccess && !isPending) && 
                     <IconButton
                         component={RouterLink}
                         to="/"
