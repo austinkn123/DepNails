@@ -5,7 +5,6 @@ import { useRegisterUser } from '../../../../queries/Auth';
 import { Button, Container, Typography, Box, IconButton, TextField, InputAdornment } from '@mui/material';
 import { MuiTelInput } from 'mui-tel-input';
 import { useNavigate } from "react-router-dom";
-import { useAuth } from '../../../context/AuthContext';
 import Visibility from '@mui/icons-material/Visibility';
 import VisibilityOff from '@mui/icons-material/VisibilityOff';
 
@@ -31,7 +30,6 @@ const SignUpSchema = Yup.object().shape({
 
 const SignUpForm = () => {
     const navigate = useNavigate();
-    const { login: contextLogin } = useAuth();
     const [showPassword, setShowPassword] = useState(false);
     const [showConfirmPassword, setShowConfirmPassword] = useState(false);
 
@@ -46,10 +44,9 @@ const SignUpForm = () => {
     };
 
      const { signUp, isPending, error: mutationError } = useRegisterUser(
-        (data) => {
-            // Auto-login using returned tokens and go home
-            contextLogin(data);
-            navigate('/');
+        (data, key, values) => { // Accept values from onSubmit
+            // Pass only email to the confirmation page
+            navigate('/confirm-email', { state: { email: values.email } });
         }
     );
 

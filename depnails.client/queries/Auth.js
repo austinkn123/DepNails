@@ -56,7 +56,20 @@ export const useRegisterUser = (onSuccessCallback, onErrorCallback) => {
     return { signUp: trigger, isPending: isMutating, error };
 };
 
-// Confirm email flow removed: signup now auto-confirms and logs in
+export const useConfirmEmailUser = (onSuccessCallback, onErrorCallback) => {
+    const { trigger, isMutating, error, data, reset } = useSWRMutation('/Auth/confirm-email', postFetcher, {
+        onSuccess: (data, key, config) => {
+            console.log('Email confirmation successful:', data);
+            if (onSuccessCallback) onSuccessCallback(data);
+        },
+        onError: (err) => {
+            console.error('Email confirmation failed:', err);
+            if (onErrorCallback) onErrorCallback(err);
+        },
+    });
+
+    return { confirmEmail: trigger, isPending: isMutating, error, data, isSuccess: !!data, reset };
+};
 
 export const useLogoutUser = (onSuccessCallback, onErrorCallback) => {
     const { trigger, isMutating } = useSWRMutation('/Auth/logout', postFetcher, {

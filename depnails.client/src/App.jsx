@@ -16,6 +16,7 @@ import ContactUs from "./components/pages/ContactUs";
 import Login from "./components/pages/Login"; 
 import SignUp from "./components/pages/SignUp"; 
 import Profile from "./components/pages/Profile";
+import ConfirmEmail from "./components/pages/ConfirmEmail"; 
 import CssBaseline from '@mui/material/CssBaseline';
 import { ToastContainer } from 'react-toastify'; 
 import 'react-toastify/dist/ReactToastify.css'; 
@@ -23,7 +24,7 @@ import 'react-toastify/dist/ReactToastify.css';
 
 function AppContent() { // Create a new component to use useLocation
     const location = useLocation();
-    const showNavBar = !['/login', '/signup'].includes(location.pathname); 
+    const showNavBar = !['/login', '/signup', '/confirm-email'].includes(location.pathname); 
 
     return (
         <>
@@ -34,6 +35,7 @@ function AppContent() { // Create a new component to use useLocation
                 <Route path='/login' element={<Login />} />
                 <Route path='/signup' element={<SignUp />} />
                 <Route path='/profile' element={<Profile />} />
+                <Route path='/confirm-email' element={<ConfirmEmail />} /> 
                 <Route path='/not-found' element={<NotFound />} />
                 <Route path='/appointment' element={<Appointment />} />
                 <Route path='/services' element={<Services />} />
